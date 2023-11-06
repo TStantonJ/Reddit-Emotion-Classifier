@@ -11,6 +11,10 @@
 #### https://huggingface.co/datasets/fake_news_english
 #### https://huggingface.co/datasets/roupenminassian/twitter-misinformation
 
+### Automated Resume Ranker: 
+#### https://www.kaggle.com/datasets/arshkon/linkedin-job-postings
+#### Building an automated resume ranking system based on job descriptions for job screening 
+
 
 
 
