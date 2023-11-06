@@ -18,5 +18,5 @@
 
 ### Idea but no dataset: Job Status Classifier
 
-#### Scrape emails and categorize them into recruiter/non-recruiter emails then further classify the recruiter/company emails into Job application received / Pre-Screening / Technical interview / HR Interview / Offer / Reject then use the information to make a status-like 
+#### Scrape emails and categorize them into recruiter/non-recruiter emails then further classify the recruiter/company emails into Job application received / Pre-Screening / Technical interview / HR Interview / Offer / Reject then use the information to make a status progress bar.
 
