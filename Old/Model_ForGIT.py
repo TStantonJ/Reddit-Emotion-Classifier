@@ -40,7 +40,7 @@ df = pd.read_json('hug_data.jsonl', lines=True)
 df.rename(columns={'label':'labels'}, inplace=True)
 
 # get subset of df for testing/debugging/development (CHANGE THIS IN THE FUTURE)
-df = df.groupby('labels').apply(lambda x: x.sample(n=3000, random_state=42)).reset_index(drop=True)
+df = df.groupby('labels').apply(lambda x: x.sample(n=3, random_state=42)).reset_index(drop=True)
 
 # shuffle df
 df = df.sample(frac=1, random_state=42).reset_index(drop=True)
