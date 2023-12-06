@@ -78,6 +78,7 @@ def data_tabs():
 
 def model_tab():
     st.session_state.modelHyperParams= {}
+    st.session_state.modelHyperParams['staircase'] = True
     # Model tabs to either use preexisiting models or train new models
     modelTab1, modelTab2= st.tabs(["Pre-Trained Models", " Train New Model",])
 
@@ -109,7 +110,7 @@ def model_tab():
         st.write("Plae Holder")
         trainModelOption_selectbox = st.selectbox(
             'Select Ddta from Pre-Loaded sources',
-            ('Retrain TFBertForSequenceClassification', 'Hugging Face Twitter Data', 'Reddit Source C'),
+            ('Retrain TFBertForSequenceClassification', 'Model B', 'Model C'),
             index=None,
             placeholder="Select model...",)
 
@@ -119,7 +120,9 @@ def model_tab():
         # Hyper param options
         trainModelcol1, trainModelcol2 = st.columns(2)
         with trainModelcol1:
-            if st.checkbox("Disable text input widget"):
+            if st.checkbox("Scheduler Staircase",value=True):
+                st.session_state.modelHyperParams['staircase'] = False
+            else:
                 st.session_state.modelHyperParams['staircase'] = True
             batch_size_input =st.text_input(
                 "Select a batchsize",
