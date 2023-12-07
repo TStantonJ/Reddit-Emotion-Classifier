@@ -1,20 +1,14 @@
 
 import  streamlit as st
 import os
+import re
 import glob
 import pandas as pd
 from transformers import TFBertForSequenceClassification, BertTokenizer
-#from Model_ForGIT6_model import tokenize_data
 from suggestions import get_data_from_source, split_data, tokenize_tensorize_data, train_model
 
 def disable(b):
     st.session_state["disabled"] = b
-
-def update_model_tab():
-    st.experimental_set_query_params(
-        model=st.session_state.model)
-
-
 
 def side_bar():
     with st.sidebar:
@@ -71,40 +65,34 @@ def data_tabs():
         # Tokenize
         tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         st.session_state.tokenizedData = tokenize_tensorize_data(tokenizer,data_split[0],data_split[1])
-        
-    
-
-
 
 def model_tab():
     st.session_state.modelHyperParams= {}
     st.session_state.modelHyperParams['staircase'] = True
+
     # Model tabs to either use preexisiting models or train new models
     modelTab1, modelTab2= st.tabs(["Pre-Trained Models", " Train New Model",])
-
 
     # Use exisitng model tab
     with modelTab1:
         
         # Find current seletion of models
-        query_params = st.experimental_get_query_params()
-        model_files = sorted([ x for x in glob.glob1("content/models", "*")])
+        model_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('model', x)])
         model_list = [f"{x}" for x in model_files]
-
-        # List out model selections
-        if query_params:
-            try:
-                selected_model = query_params["model"][0]
-                if selected_model in model_list:
-                    st.session_state.model = selected_model
-                    st.write(f"Currently selected model: {st.session_state.model}")
-            except KeyError:
-                st.session_state.day = model_list[0]
+        tokenizer_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('tokenizer', x)])
+        tokenizer_list = [f"{x}" for x in tokenizer_files]
                 
         # Allow for selection of model
         selected_model = st.selectbox(
-            ("Select a Model"), model_list, key="model", index=None, on_change=update_model_tab)
+            ("Select a Model"), model_list, index=None)#, on_change=update_model_tab)
+        st.session_state.model = selected_model
 
+        # Allow for selection of model
+        selected_tokenizer = st.selectbox(
+            ("Select a tokenizer"), tokenizer_list, index=None)
+        st.session_state.tokenizer = selected_tokenizer
+        st.write([st.session_state.model, st.session_state.tokenizer])
+        
     # Train new model tab
     with modelTab2:
         st.write("Plae Holder")
@@ -118,12 +106,17 @@ def model_tab():
             st.session_state.newModelType = "TFBERT"
 
         # Hyper param options
+        if st.checkbox("Scheduler Staircase",value=True):
+            st.session_state.modelHyperParams['staircase'] = False
+        else:
+            st.session_state.modelHyperParams['staircase'] = True
         trainModelcol1, trainModelcol2 = st.columns(2)
         with trainModelcol1:
-            if st.checkbox("Scheduler Staircase",value=True):
-                st.session_state.modelHyperParams['staircase'] = False
-            else:
-                st.session_state.modelHyperParams['staircase'] = True
+            
+            new_model_name =st.text_input(
+                "Select an name for your model",
+                "unamed",
+            )
             batch_size_input =st.text_input(
                 "Select a batchsize",
                 "128",
@@ -148,6 +141,7 @@ def model_tab():
         
         if st.button('train'):
             # lock in hyper params
+            t.session_state.modelHyperParams['new_model_name'] =  new_model_name
             st.session_state.modelHyperParams['batch_size'] = batch_size_input
             st.session_state.modelHyperParams['initial_learning_rate'] = initial_learning_rate_input
             st.session_state.modelHyperParams['decay_steps'] = decay_steps_input

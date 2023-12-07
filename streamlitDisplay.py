@@ -3,7 +3,7 @@ from utils_app import side_bar, data_tabs, model_tab, analysis_tab
 # %%--------------------------------------------------------------------------------------------------------------------
 mainTab1, mainTab2= st.tabs(["Sentiment Training", "Sentiment Logging Training",])
 with mainTab1:
-    st.title("Sentiment Training")
+    st.title("Sentiment Training of models")
     # %%--------------------------------------------------------------------------------------------------------------------
     # Session variables and utility function instantiation
     st.session_state.dataSource = "None Selected"

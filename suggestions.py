@@ -100,6 +100,7 @@ def train_model(model_name, **kwargs):
         labels_train = kwargs['labels_train']
 
         #Unpack parameter kwargs
+        new_model_name = kwargs['new_model_name']
         batch_size = kwargs['batch_size']
         initial_learning_rate = kwargs['initial_learning_rate']
         decay_steps = kwargs['decay_steps']
@@ -134,6 +135,9 @@ def train_model(model_name, **kwargs):
                             epochs=epochs, 
                             validation_split=0.2,
                             callbacks=[early_stopping])
+        
+        model.save_pretrained(os.path.join(new_model_name+'_model'))
+        #tokenizer.save_pretrained(os.path.join('bert_emotion_classifier_tokenizer_reddit'))
         
         return(model, history)
         
