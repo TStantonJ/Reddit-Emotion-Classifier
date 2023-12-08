@@ -20,18 +20,18 @@ def analysis_data_tabs():
             dataSource = pd.DataFrame()
             dataOption_selectbox = st.selectbox(
             'Select Ddta from Pre-Loaded sources',
-            ('Merged Reddit Data', 'Hugging Face Twitter Data', 'Reddit post and comments'),
+            ('Reddit post and comments'),
             index=None,
             placeholder="Select data source...",)
 
-            if dataOption_selectbox == 'Merged Reddit Data':
-                dataSource = pd.read_csv('preloadedData/merged_reddit_data.csv')
-                st.session_state.dataSource = dataSource
-            elif dataOption_selectbox == 'Hugging Face Twitter Data':
-                dataSource = pd.read_json('hug_data.jsonl', lines=True)
-                dataSource.rename(columns={'label':'labels'}, inplace=True) # rename label to label_encoded
-                st.session_state.dataSource = dataSource
-            elif dataOption_selectbox == 'Reddit post and comments':
+            # if dataOption_selectbox == 'Merged Reddit Data':
+            #     dataSource = pd.read_csv('preloadedData/merged_reddit_data.csv')
+            #     st.session_state.dataSource = dataSource
+            # elif dataOption_selectbox == 'Hugging Face Twitter Data':
+            #     dataSource = pd.read_json('hug_data.jsonl', lines=True)
+            #     dataSource.rename(columns={'label':'labels'}, inplace=True) # rename label to label_encoded
+            #     st.session_state.dataSource = dataSource
+            if dataOption_selectbox == 'Reddit post and comments':
                 dataSource = pd.read_csv('reddit_posts_and_comments.csv', parse_dates = ['Creation Date'])
                 st.session_state.dataSource = dataSource
             
