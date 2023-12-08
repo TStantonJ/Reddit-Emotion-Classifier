@@ -1,6 +1,8 @@
 /content/models
 # C extensions
 *.so
+*.pyc
+*.pyo
 
 # Distribution / packaging
 bin/

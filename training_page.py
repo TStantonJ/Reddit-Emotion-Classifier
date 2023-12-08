@@ -1,4 +1,3 @@
-
 import  streamlit as st
 import os
 import re
@@ -7,15 +6,7 @@ import pandas as pd
 from transformers import TFBertForSequenceClassification, BertTokenizer
 from suggestions import  train_model
 from datacode import get_data_from_source, split_data, tokenize_tensorize_data
-
-def disable(b):
-    st.session_state["disabled"] = b
-
-def side_bar():
-    with st.sidebar:
-        if st.button('Reset'):
-            # Clear the chat history
-            st.session_state.messages = []
+from utils_app import disable, side_bar, file_selector
 
 # Function taht controls the data selection tabs
 # TODO: add current selected data in tab header
@@ -166,8 +157,3 @@ def model_tab():
 
 def analysis_tab():
     st.subheader("Analysis")
-
-def file_selector(folder_path='.'):
-    filenames = os.listdir(folder_path)
-    selected_filename = st.selectbox('Select a file', filenames)
-    return os.path.join(folder_path, selected_filename)
