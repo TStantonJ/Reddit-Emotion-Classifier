@@ -73,20 +73,20 @@ def train_model_tab():
     with modelTab1:
         
         # Find current seletion of models
-        model_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('model', x)])
-        model_list = [f"{x}" for x in model_files]
-        tokenizer_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('tokenizer', x)])
-        tokenizer_list = [f"{x}" for x in tokenizer_files]
+        train_model_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('model', x)])
+        train_model_list = [f"{x}" for x in train_model_files]
+        train_tokenizer_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('tokenizer', x)])
+        train_tokenizer_list = [f"{x}" for x in train_tokenizer_files]
                 
         # Allow for selection of model
-        selected_model = st.selectbox(
-            ("Select a Model"), model_list, index=None)#, on_change=update_model_tab)
-        st.session_state.model = selected_model
+        train_selected_model = st.selectbox(
+            ("Select a Model"), train_model_list, index=None)#, on_change=update_model_tab)
+        st.session_state.model = train_selected_model
 
         # Allow for selection of model
-        selected_tokenizer = st.selectbox(
-            ("Select a tokenizer"), tokenizer_list, index=None)
-        st.session_state.tokenizer = selected_tokenizer
+        train_selected_tokenizer = st.selectbox(
+            ("Select a tokenizer"), train_tokenizer_list, index=None)
+        st.session_state.tokenizer = train_selected_tokenizer
         st.write([st.session_state.model, st.session_state.tokenizer])
         
     # Train new model tab

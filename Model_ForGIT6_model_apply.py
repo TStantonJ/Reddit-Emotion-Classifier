@@ -18,6 +18,7 @@ lemmatizer = WordNetLemmatizer()
 
 class EmotionClassifier:
     def __init__(self, model_path, tokenizer_path):
+        print(model_path)
         self.model = TFBertForSequenceClassification.from_pretrained(model_path)
         self.tokenizer = BertTokenizer.from_pretrained(tokenizer_path)
 
@@ -61,8 +62,8 @@ class EmotionClassifier:
 
 
 # define directory and load previously trained model
-cur_dir = '/home/ubuntu/NLP/Project_test/data_model'
-os.chdir(cur_dir)
+#cur_dir = '/home/ubuntu/NLP/Project_test/data_model'
+#os.chdir(cur_dir)
 
 
 
@@ -83,5 +84,5 @@ if __name__ == "__main__":
     print("Predicted Emotion Probabilities:", prediction)
 
 
-cur_dir = '/home/ubuntu/NLP/Project_test'
-os.chdir(cur_dir)
+#cur_dir = '/home/ubuntu/NLP/Project_test'
+#os.chdir(cur_dir)
