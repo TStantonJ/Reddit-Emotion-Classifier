@@ -1,6 +1,6 @@
 import streamlit as st
 from training_page import  train_side_bar, train_data_tabs, train_model_tab, train_analysis_tab
-from analysis_page import analysis_model_tab
+from analysis_page import analysis_data_tabs, analysis_model_tab
 # %%--------------------------------------------------------------------------------------------------------------------
 mainTab1, mainTab2= st.tabs(["Sentiment Training", "Sentiment Logging Training",])
 with mainTab1:
@@ -31,6 +31,7 @@ with mainTab1:
     print('Amir')
 with mainTab2:
     st.title("Sentiment Logging Training")
+    analysis_data_tabs()
     analysis_model_tab()
 
 
