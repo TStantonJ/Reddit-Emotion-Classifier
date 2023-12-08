@@ -1,5 +1,5 @@
 import streamlit as st
-from training_page import side_bar, data_tabs, model_tab, analysis_tab
+from training_page import  train_side_bar, train_data_tabs, train_model_tab, train_analysis_tab
 # %%--------------------------------------------------------------------------------------------------------------------
 mainTab1, mainTab2= st.tabs(["Sentiment Training", "Sentiment Logging Training",])
 with mainTab1:
@@ -7,18 +7,18 @@ with mainTab1:
     # %%--------------------------------------------------------------------------------------------------------------------
     # Session variables and utility function instantiation
     st.session_state.dataSource = "None Selected"
-    side_bar()
+    train_side_bar()
 
     # Data Section
-    data_tabs()
+    train_data_tabs()
     st.divider()
 
     # Model Section
-    model_tab()
+    train_model_tab()
     st.divider()
 
     # Analysis Section
-    analysis_tab()
+    train_analysis_tab()
     # %%--------------------------------------------------------------------------------------------------------------------
     code = """df = pd.DataFrame(
         np.random.randint(low=0, high=100, size=(10, 10)),

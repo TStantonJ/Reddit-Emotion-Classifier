@@ -1,16 +1,20 @@
 import  streamlit as st
-import os
 import re
 import glob
 import pandas as pd
 from transformers import TFBertForSequenceClassification, BertTokenizer
 from suggestions import  train_model
 from datacode import get_data_from_source, split_data, tokenize_tensorize_data
-from utils_app import disable, side_bar, file_selector
+
+def train_side_bar():
+    with st.sidebar:
+        if st.button('Reset'):
+            # Clear the chat history
+            st.session_state.messages = []
 
 # Function taht controls the data selection tabs
 # TODO: add current selected data in tab header
-def data_tabs():
+def train_data_tabs():
     # Initalize buttons that need it
     st.session_state.butTokenizeDsabled = True
 
@@ -58,7 +62,7 @@ def data_tabs():
         tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         st.session_state.tokenizedData = tokenize_tensorize_data(tokenizer,data_split[0],data_split[1])
 
-def model_tab():
+def train_model_tab():
     st.session_state.modelHyperParams= {}
     st.session_state.modelHyperParams['staircase'] = True
 
@@ -155,5 +159,5 @@ def model_tab():
 
     
 
-def analysis_tab():
+def train_analysis_tab():
     st.subheader("Analysis")
