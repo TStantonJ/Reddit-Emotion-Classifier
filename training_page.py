@@ -18,53 +18,50 @@ def train_data_tabs():
     # Initalize buttons that need it
     st.session_state.butTokenizeDsabled = True
 
-    with st.expander("Data Sources",expanded=True):
-        #st.subheader("Data Sources")
-        dataTab1, dataTab2= st.tabs(["Pre-Loaded Data", " Live Data",])
-        with dataTab1:
-            # Source select for preloaded data
-            dataSource = pd.DataFrame()
-            dataOption_selectbox = st.selectbox(
-            'Select Ddta from Pre-Loaded sources',
-            ('Merged Reddit Data', 'Hugging Face Twitter Data', 'Reddit Source C'),
-            index=None,
-            placeholder="Select data source...",)
+    # Source select for preloaded data
+    dataSource = pd.DataFrame()
+    dataOption_selectbox = st.selectbox(
+    'Select training data from available data sets',
+    ('Merged Reddit Data', 'Hugging Face Twitter Data', 'Reddit Source C'),
+    index=None,
+    placeholder="Select data source...",)
 
-            if dataOption_selectbox == 'Merged Reddit Data':
-                dataSource = pd.read_csv('preloadedData/merged_reddit_data.csv')
-                st.session_state.dataSource = dataSource
-                st.session_state.labels = [i for i in dataSource.columns]
-                st.session_state.text = [i for i in dataSource.columns]
-                st.session_state.sampleSizeMax = len(dataSource)
-                st.session_state.butTokenizeDsabled = False
-            elif dataOption_selectbox == 'Hugging Face Twitter Data':
-                dataSource = pd.read_json('hug_data.jsonl', lines=True)
-                st.session_state.labels = [i for i in dataSource.columns]
-                st.session_state.text = [i for i in dataSource.columns]
-                st.session_state.dataSource = dataSource
-                st.session_state.labels = [i for i in dataSource.columns]
-                st.session_state.text = [i for i in dataSource.columns]
-                st.session_state.sampleSizeMax = len(dataSource)
-                st.session_state.butTokenizeDsabled = False
-            elif dataOption_selectbox == 'Reddit Source C':
-                pass
-            
-            # Allow for selection of label and text
-            train_label_selection = st.selectbox(
-                ("Select a column as label"), st.session_state.labels, index=None)
-            st.session_state.choosenLabel = train_label_selection
-            train_text_selection = st.selectbox(
-                ("Select a column as text"), st.session_state.text, index=None)
-            st.session_state.choosenText = train_text_selection
-            train_sampleSize_selection =  st.number_input("Select amount of text you want to train on"
-                                                        ,max_value=st.session_state.sampleSizeMax)
-            st.session_state.sampleSize = train_sampleSize_selection
-            
-            # Display data
-            st.dataframe(dataSource, use_container_width=True)
-        
-    with dataTab2:
-        st.subheader("On the fly data")
+    if dataOption_selectbox == 'Merged Reddit Data':
+        dataSource = pd.read_csv('preloadedData/merged_reddit_data.csv')
+        st.session_state.dataSource = dataSource
+        st.session_state.labels = [i for i in dataSource.columns]
+        st.session_state.text = [i for i in dataSource.columns]
+        st.session_state.sampleSizeMax = len(dataSource)
+        st.session_state.butTokenizeDsabled = False
+    elif dataOption_selectbox == 'Hugging Face Twitter Data':
+        dataSource = pd.read_json('hug_data.jsonl', lines=True)
+        st.session_state.labels = [i for i in dataSource.columns]
+        st.session_state.text = [i for i in dataSource.columns]
+        st.session_state.dataSource = dataSource
+        st.session_state.labels = [i for i in dataSource.columns]
+        st.session_state.text = [i for i in dataSource.columns]
+        st.session_state.sampleSizeMax = len(dataSource)
+        st.session_state.butTokenizeDsabled = False
+    elif dataOption_selectbox == 'Reddit Source C':
+        pass
+    
+    labelColumn, textColumn = st.columns(2)
+    with textColumn:
+        train_text_selection = st.selectbox(
+        ("Select a column as text"), st.session_state.text, index=None)
+        st.session_state.choosenText = train_text_selection
+    with labelColumn:
+        # Allow for selection of label and text
+        train_label_selection = st.selectbox(
+            ("Select a column as label"), st.session_state.labels, index=None)
+        st.session_state.choosenLabel = train_label_selection
+    
+    train_sampleSize_selection =  st.number_input("Select amount of text you want to train on"
+                                                ,max_value=st.session_state.sampleSizeMax)
+    st.session_state.sampleSize = train_sampleSize_selection
+    
+    # Display data
+    st.dataframe(dataSource, use_container_width=True)
 
     
     if st.button('Tokenize Data', key='but_tokenize', disabled=st.session_state.butTokenizeDsabled):
@@ -83,27 +80,21 @@ def train_model_tab():
     st.session_state.modelHyperParams['staircase'] = True
 
     # Model tabs to either use preexisiting models or train new models
-    modelTab1, modelTab2= st.tabs(["Pre-Trained Models", " Train New Model",])
+    modelTab1, modelTab2= st.tabs(["Test already trained models", " Train New Model",])
 
     # Use exisitng model tab
     with modelTab1:
-        
         # Find current seletion of models
         train_model_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('model', x)])
         train_model_list = [f"{x}" for x in train_model_files]
-        train_tokenizer_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('tokenizer', x)])
-        train_tokenizer_list = [f"{x}" for x in train_tokenizer_files]
                 
         # Allow for selection of model
         train_selected_model = st.selectbox(
-            ("Select a Model"), train_model_list, index=None)#, on_change=update_model_tab)
+            ("Select a Model"), train_model_list, index=None)
         st.session_state.model = train_selected_model
+        st.write(st.session_state.model)
 
-        # Allow for selection of model
-        train_selected_tokenizer = st.selectbox(
-            ("Select a tokenizer"), train_tokenizer_list, index=None)
-        st.session_state.tokenizer = train_selected_tokenizer
-        st.write([st.session_state.model, st.session_state.tokenizer])
+        
         
     # Train new model tab
     with modelTab2:
