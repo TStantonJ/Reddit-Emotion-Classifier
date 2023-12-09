@@ -165,51 +165,18 @@ def analysis_model_tab():
         st.write(df)
 
 
-        # sent_scores[time_period].append(prediction)
-
-        # # Average date groups
-        # for i in range(len(sent_scores)):
-        #     average_holder = []
-        #     for j in range(len(sent_scores[i])):
-        #         for k in range(len(sent_scores[i][j])):
-        #             average_holder[k].append(sent_scores[i][j][k])
-        #
-        #     for emotion in range(len(average_holder)):
-        #         average_holder[emotion] = statistics.mean(average_holder[emotion])
-        #
-        # # Write averages for now
-        # st.write(average_holder)
-
-        if sent_scores:
-            num_emotions = len(sent_scores[0][0])
-            average_holder = [[] for _ in range(num_emotions)]
-        else:
+        for i in range(len(sent_scores)):
             average_holder = []
+            for j in range(len(sent_scores[i])):
+                for k in range(len(sent_scores[i][j])):
+                    average_holder[k].append(sent_scores[i][j][k])
 
-        for sentence_scores in sent_scores:
-            for emotion_scores in sentence_scores:
-                for i, score in enumerate(emotion_scores):
-                    average_holder[i].append(score)
+            for emotion in range(len(average_holder)):
+                average_holder[emotion] = statistics.mean(average_holder[emotion])
 
-
-        for i in range(len(average_holder)):
-            average_holder[i] = statistics.mean(average_holder[i]) if average_holder[i] else 0
-
+        # Write averages for now
         st.write(average_holder)
 
-        if st.button('Show Plot'):
-            fig = plot_sentiment_scores(average_holder)
-            st.pyplot(fig)
-            
-def arrange_data(df, splitBy):
-    if splitBy == 'd':
-        pass
-    elif splitBy == 'm':
-        g = df.groupby(pd.Grouper(key='Creation Date', freq='M'))
-        groups = [group for _,group in g]
-        return groups
-    elif splitBy == 'y':
-        pass
 
 def reddit_scraper(client_id, client_secret, user_agent, num_posts, subreddit_name, interval, top_comments_count, output_file):
     class RedditScraper:
