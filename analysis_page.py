@@ -7,10 +7,34 @@ from suggestions import  train_model
 from datacode import get_data_from_source, split_data, tokenize_tensorize_data
 from Model_ForGIT6_model_apply import*
 import statistics
+import praw
+import pandas as pd
+from datetime import datetime, timedelta
+import time
+from tqdm import tqdm
+import prawcore
+from concurrent.futures import ThreadPoolExecutor
+
+def preprocess_text(self, text):
+    # Ensure text is not None
+    #if text is None:
+    #    return 'none none none none'
+    
+    text = re.sub(r'http\S+', '', text)
+    text = re.sub(r'[^a-zA-Z0-9.,;:!?\'\"-]', ' ', text)
+    text = text.lower()
+    text = ' '.join([word for word in text.split() if word not in stopwords.words('english')])
+    text = re.sub(' +', ' ', text)
+
+    # Lemmatize
+    doc = nlp(text)
+    text = ' '.join([lemmatizer.lemmatize(token.text) for token in doc])
+
+    return text
 
 def analysis_data_tabs():
     # Initalize buttons that need it
-    st.session_state.butTokenizeDsabled = True
+    st.session_state.butTokenizeDisabled = True
 
     with st.expander("Data Sources",expanded=True):
         #st.subheader("Data Sources")
@@ -19,7 +43,7 @@ def analysis_data_tabs():
             # Source select for preloaded data
             dataSource = pd.DataFrame()
             dataOption_selectbox = st.selectbox(
-            'Select Ddta from Pre-Loaded sources',
+            'Select Data from Pre-Loaded sources',
             (['Reddit post and comments']),
             index=None,
             placeholder="Select data source...",)
@@ -43,16 +67,24 @@ def analysis_data_tabs():
         
         # You can include a button to trigger the scraping process
         if st.button('Fetch Live Data'):
-            # Your scraping logic goes here
-            # For example, you could scrape data from a website, API, etc.
-            live_data = your_scraping_function()
-
-            # Perform any necessary preprocessing on live_data
-            processed_live_data = preprocess_live_data(live_data)
-
-            # Update the session state or display the data
-            st.session_state.liveDataSource = processed_live_data
-            st.dataframe(processed_live_data, use_container_width=True)
+            # inputs: client_id, client_secret, user_agent, num_posts, subreddit_name, interval, top_comments_count, output_file
+            df = reddit_scraper('nFKOCvQQEIoW2hFeVG6kfA', 
+                                '5BBB4fr-HMPtO8f4jZhle74-fYcDkQ', 
+                                'Icy_Process3191', 
+                                5, 
+                                'wallstreetbets', 
+                                'weekly', 
+                                3, 
+                                'reddit_posts_and_comments.csv')
+            
+            
+           # Assuming the reddit_scraper function returns a dataframe
+            if df is not None and not df.empty:
+                st.write("First few rows of the fetched data:")
+                st.dataframe(df.head(), use_container_width=True)
+            else:
+                st.write("No live data fetched")
+                
 
 def analysis_model_tab(): 
     # Find current seletion of models
@@ -113,3 +145,71 @@ def arrange_data(df, splitBy):
         return groups
     elif splitBy == 'y':
         pass
+
+def reddit_scraper(client_id, client_secret, user_agent, num_posts, subreddit_name, interval, top_comments_count, output_file):
+    class RedditScraper:
+        def __init__(self, client_id, client_secret, user_agent):
+            self.reddit = praw.Reddit(
+                client_id=client_id,
+                client_secret=client_secret,
+                user_agent=user_agent)
+
+        def fetch_posts(self, num_posts, sub_name, interval):
+            subreddit = self.reddit.subreddit(sub_name)
+            posts = subreddit.top(time_filter='week', limit=num_posts)
+            posts_list = list(posts)
+            posts_list.sort(key=lambda post: post.created_utc, reverse=True)
+
+            intervals = {
+                'daily': timedelta(days=1),
+                'weekly': timedelta(weeks=1),
+                'monthly': timedelta(weeks=4)}
+
+            end_time = datetime.utcfromtimestamp(posts_list[0].created_utc)
+            nested_posts = []
+            current_interval_start = end_time
+            data = []
+            interval_num = 0
+
+            for post in posts_list:
+                post_time = datetime.utcfromtimestamp(post.created_utc)
+
+                if post_time < current_interval_start - intervals[interval]:
+                    interval_num += 1
+                    current_interval_start = post_time
+
+                data.append({
+                    'Post/Comment': 'Post',
+                    'ID': post.id,
+                    'Text': post.title + post.selftext,
+                    'Creation Date': datetime.utcfromtimestamp(post.created_utc).strftime('%Y-%m-%d'),
+                    'Interval Number': interval_num})
+
+            return data, posts_list
+
+        def fetch_comments(self, submission, limit, interval_num):
+            submission.comment_sort = 'best'
+            submission.comments.replace_more(limit=0)
+
+            return [{'Post/Comment': 'Comment', 'ID': submission.id, 'Text': comment.body,
+                     'Creation Date': datetime.utcfromtimestamp(comment.created_utc).strftime('%Y-%m-%d'),
+                     'Interval Number': interval_num} for comment in submission.comments.list()[:limit]]
+
+        def create(self, num_posts, subreddit_name, interval, top_comments_count, output_file):
+
+            data, posts_list = self.fetch_posts(num_posts, subreddit_name, interval)
+            interval_nums = [d['Interval Number'] for d in data]
+
+            with ThreadPoolExecutor() as executor:
+                comments_list = list(executor.map(lambda p: self.fetch_comments(p[0], top_comments_count, p[1]),
+                                                  list(zip(posts_list, interval_nums))))
+
+            data.extend([comment for comment_list in comments_list for comment in comment_list])
+
+            #print(len(data))
+            df = pd.DataFrame(data)
+            #df.to_csv(output_file, index=True)
+
+    scraper = RedditScraper(client_id, client_secret, user_agent)
+    return scraper.create(num_posts, subreddit_name, interval, top_comments_count, output_file)
+
