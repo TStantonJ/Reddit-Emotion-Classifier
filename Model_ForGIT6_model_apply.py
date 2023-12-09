@@ -21,7 +21,7 @@ class EmotionClassifier:
 
         if model_name == 'bert':
             self.model = TFBertForSequenceClassification.from_pretrained(model_path)
-            self.tokenizer = BertTokenizer.from_pretrained(tokenizer_path)
+            self.tokenizer = BertTokenizer.from_pretrained(model_path)
         elif model_name == 'electra':
             self.model = TFElectraForSequenceClassification.from_pretrained(model_path)
             self.tokenizer = ElectraTokenizer.from_pretrained(model_path)
