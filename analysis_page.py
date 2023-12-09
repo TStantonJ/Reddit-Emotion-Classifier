@@ -20,7 +20,7 @@ def analysis_data_tabs():
             dataSource = pd.DataFrame()
             dataOption_selectbox = st.selectbox(
             'Select Ddta from Pre-Loaded sources',
-            ('Reddit post and comments'),
+            (['Reddit post and comments']),
             index=None,
             placeholder="Select data source...",)
 
