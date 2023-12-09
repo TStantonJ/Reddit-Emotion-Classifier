@@ -1,0 +1,171 @@
+import streamlit as st
+import re
+import glob
+import pandas as pd
+from transformers import TFBertForSequenceClassification, BertTokenizer
+from suggestions import  train_model
+from datacode import get_data_from_source, split_data, tokenize_tensorize_data
+from Model_ForGIT6_model_apply import*
+import statistics
+
+from Electra_model import *
+from Roberta_model import *
+import matplotlib.pyplot as plt
+import statistics
+
+def analysis_data_tabs():
+    # Initalize buttons that need it
+    st.session_state.butTokenizeDsabled = True
+
+    with st.expander("Data Sources",expanded=True):
+        #st.subheader("Data Sources")
+        dataTab1, dataTab2= st.tabs(["Pre-Loaded Data", " Live Data",])
+        with dataTab1:
+            # Source select for preloaded data
+            dataSource = pd.DataFrame()
+            dataOption_selectbox = st.selectbox(
+            'Select Data from Pre-Loaded sources',
+            (['Reddit post and comments']),
+            index=None,
+            placeholder="Select data source...",)
+
+            # if dataOption_selectbox == 'Merged Reddit Data':
+            #     dataSource = pd.read_csv('preloadedData/merged_reddit_data.csv')
+            #     st.session_state.dataSource = dataSource
+            # elif dataOption_selectbox == 'Hugging Face Twitter Data':
+            #     dataSource = pd.read_json('hug_data.jsonl', lines=True)
+            #     dataSource.rename(columns={'label':'labels'}, inplace=True) # rename label to label_encoded
+            #     st.session_state.dataSource = dataSource
+            if dataOption_selectbox == 'Reddit post and comments':
+                dataSource = pd.read_csv('reddit_posts_and_comments.csv', parse_dates = ['Creation Date'])
+                st.session_state.dataSource = dataSource
+            
+            # Display of selected data
+            st.dataframe(dataSource, use_container_width=True)
+        
+    with dataTab2:
+        st.subheader("On the fly data")
+        
+        # You can include a button to trigger the scraping process
+        if st.button('Fetch Live Data'):
+            # Your scraping logic goes here
+            # For example, you could scrape data from a website, API, etc.
+            live_data = your_scraping_function()
+
+            # Perform any necessary preprocessing on live_data
+            processed_live_data = preprocess_live_data(live_data)
+
+            # Update the session state or display the data
+            st.session_state.liveDataSource = processed_live_data
+            st.dataframe(processed_live_data, use_container_width=True)
+
+def analysis_model_tab(): 
+
+    model_directory = "content/models"
+    all_items = glob.glob(os.path.join(model_directory, "*"))
+    analysis_model_files = sorted([x for x in all_items if re.search('model', os.path.basename(x))])
+
+
+    analysis_model_list = [f"{x}" for x in analysis_model_files]
+    analysis_tokenizer_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('tokenizer', x)])
+    analysis_tokenizer_list = [f"{x}" for x in analysis_tokenizer_files]
+            
+    # Allow for selection of model
+    analysis_selected_model = st.selectbox(
+        ("Select am Model"), analysis_model_list, index=None)
+
+    if re.search(r'bert', st.session_state.model, re.IGNORECASE) is not None:
+        st.session_state.model_name = 'bert'
+    elif re.search(r'electra', st.session_state.model, re.IGNORECASE) is not None:
+        st.session_state.model_name = 'electra'
+    elif re.search(r'roberta', st.session_state.model, re.IGNORECASE) is not None:
+        st.session_state.model_name = 'roberta'
+
+    st.session_state.model = analysis_selected_model
+
+    # Allow for selection of model
+    analysis_selected_tokenizer = st.selectbox(
+        ("Select am tokenizer"), analysis_tokenizer_list, index=None)
+    st.session_state.tokenizer = analysis_selected_tokenizer
+    st.write([st.session_state.model, st.session_state.tokenizer])
+
+
+
+    if st.button('Apply Model'):
+        cwd = os.getcwd()
+
+        classifier = EmotionClassifier(cwd + '/content/models/' + st.session_state.model, cwd + '/content/models/' +  st.session_state.tokenizer)
+
+
+        # Arrange Date groups by selected range
+        grouped_data = arrange_data(st.session_state.dataSource, 'm')
+
+        # Predict on each piece of data and store in its date group
+        st.write(grouped_data[0])
+        sent_scores = []
+        for time_period in range(len(grouped_data)):
+            sent_scores.append([])
+            for _,datum in grouped_data[time_period].iterrows():
+                #print(datum['Text'])
+                datum_text = datum['Text']
+
+                datum_preprocessed = classifier.preprocess_text(datum_text)
+
+                prediction = classifier.predict_emotion(datum_preprocessed)
+
+                sent_scores[time_period].append(prediction)
+
+        # # Average date groups
+        # for i in range(len(sent_scores)):
+        #     average_holder = []
+        #     for j in range(len(sent_scores[i])):
+        #         for k in range(len(sent_scores[i][j])):
+        #             average_holder[k].append(sent_scores[i][j][k])
+        #
+        #     for emotion in range(len(average_holder)):
+        #         average_holder[emotion] = statistics.mean(average_holder[emotion])
+        #
+        # # Write averages for now
+        # st.write(average_holder)
+
+        if sent_scores:
+            num_emotions = len(sent_scores[0][0])
+            average_holder = [[] for _ in range(num_emotions)]
+        else:
+            average_holder = []
+
+        for sentence_scores in sent_scores:
+            for emotion_scores in sentence_scores:
+                for i, score in enumerate(emotion_scores):
+                    average_holder[i].append(score)
+
+
+        for i in range(len(average_holder)):
+            average_holder[i] = statistics.mean(average_holder[i]) if average_holder[i] else 0
+
+        st.write(average_holder)
+
+        if st.button('Show Plot'):
+            fig = plot_sentiment_scores(average_holder)
+            st.pyplot(fig)
+
+def arrange_data(df, splitBy):
+    if splitBy == 'd':
+        pass
+    elif splitBy == 'm':
+        g = df.groupby(pd.Grouper(key='Creation Date', freq='M'))
+        groups = [group for _,group in g]
+        return groups
+    elif splitBy == 'y':
+        pass
+
+
+def plot_sentiment_scores(average_scores):
+    plt.figure(figsize=(10, 6))
+    plt.bar(range(len(average_scores)), average_scores, color='skyblue')
+    plt.xlabel('Interval Number')
+    plt.ylabel('Average Sentiment Score')
+    plt.title('Average Sentiment Scores per Interval')
+    plt.xticks(range(len(average_scores)))
+    plt.ylim([0, 1])
+    return plt
