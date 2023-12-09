@@ -1,9 +1,8 @@
-import  streamlit as st
+import streamlit as st
 import re
 import glob
 import pandas as pd
 from transformers import TFBertForSequenceClassification, BertTokenizer
-from suggestions import  train_model
 from datacode import get_data_from_source, split_data, tokenize_tensorize_data
 from Model_ForGIT6_model_apply import*
 import statistics
@@ -99,6 +98,8 @@ def analysis_data_tabs():
             if df is not None and not df.empty:
                 st.write(f"First few rows the fetched data (out of {len(df)}):")
                 st.dataframe(df.head(), use_container_width=True)
+                df.to_csv('output.csv', index=True)
+
             else:
                 st.write("No live data fetched")
                 
@@ -143,25 +144,28 @@ def analysis_model_tab():
                                         model_path=cwd + '/' + st.session_state.model, 
                                         tokenizer_path=''#cwd + '/content/models/' +  st.session_state.tokenizer
                                         )
-
-
+        print("classifer loaded")
+        print(classifier)
         # Arrange Date groups by selected range
-        grouped_data = arrange_data(st.session_state.dataSource, 'm')
+
+
 
         # Predict on each piece of data and store in its date group
-        st.write(grouped_data[0])
+        df = pd.read_csv('output.csv')
+
         sent_scores = []
-        for time_period in range(len(grouped_data)):
-            sent_scores.append([])
-            for _,datum in grouped_data[time_period].iterrows():
-                #print(datum['Text'])
-                datum_text = datum['Text']
 
-                datum_preprocessed = classifier.preprocess_text(datum_text)
+        # datum_preprocessed = classifier.preprocess_text(text)
+        prediction, probs = classifier.predict_emotions(df['Text'].tolist())
+        df['Sentiment'] = prediction
+        df['Score'] = probs
 
-                prediction = classifier.predict_emotion(datum_preprocessed)
+        df.to_csv('output_sentiment.csv', index = True)
 
-                sent_scores[time_period].append(prediction)
+        st.write(df)
+
+
+        # sent_scores[time_period].append(prediction)
 
         # # Average date groups
         # for i in range(len(sent_scores)):

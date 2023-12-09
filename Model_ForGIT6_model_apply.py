@@ -43,6 +43,25 @@ class EmotionClassifier:
 
         return text
 
+    def predict_emotions(self, texts):
+
+        encoding = self.tokenizer(
+            texts,
+            padding=True,
+            truncation=True,
+            max_length=128,
+            return_tensors='tf'
+        )
+
+        logits = self.model.predict(
+            {'input_ids': encoding['input_ids'], 'attention_mask': encoding['attention_mask']}).logits
+        probabilities = tf.nn.softmax(logits, axis=1).numpy()
+
+        emotions = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
+
+        most_likely_emotions = [emotions[np.argmax(prob)] for prob in probabilities]
+
+        return most_likely_emotions, [max(prob) for prob in probabilities]
 
     def predict_emotion(self, text):
         # Tokenize the input text
@@ -72,7 +91,6 @@ class EmotionClassifier:
 # define directory and load previously trained model
 #cur_dir = '/home/ubuntu/NLP/Project_test/data_model'
 #os.chdir(cur_dir)
-
 
 
 # Example usage
