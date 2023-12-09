@@ -7,28 +7,20 @@ import spacy
 import nltk
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
-from transformers import TFElectraForSequenceClassification, ElectraTokenizer, ElectraConfig
-from transformers import TFRobertaForSequenceClassification, RobertaTokenizer, RobertaConfig
 
+# Load spacy model and stopwords
+nlp = spacy.load("en_core_web_sm")
+nltk.download('stopwords')
+nltk.download('wordnet')
+
+# Initialize lemmatizer
+lemmatizer = WordNetLemmatizer()
 
 class EmotionClassifier:
-    def __init__(self, model_path, tokenizer_path, model_name):
-
-        self.nlp = spacy.load("en_core_web_sm")
-        nltk.download('stopwords')
-        nltk.download('wordnet')
-        self.lemmatizer = WordNetLemmatizer()
-
-        if model_name == 'bert':
-            self.model = TFBertForSequenceClassification.from_pretrained(model_path)
-            self.tokenizer = BertTokenizer.from_pretrained(tokenizer_path)
-        elif model_name == 'electra':
-            self.model = TFElectraForSequenceClassification.from_pretrained(model_path)
-            self.tokenizer = ElectraTokenizer.from_pretrained(model_path)
-        elif model_name == 'roberta':
-            self.model = TFRobertaForSequenceClassification.from_pretrained(model_path)
-            self.tokenizer = RobertaTokenizer.from_pretrained(model_path)
-
+    def __init__(self, model_path, tokenizer_path):
+        print(model_path)
+        self.model = TFBertForSequenceClassification.from_pretrained(model_path)
+        self.tokenizer = BertTokenizer.from_pretrained(tokenizer_path)
 
     def preprocess_text(self, text):
         text = re.sub(r'http\S+', '', text)
@@ -38,8 +30,8 @@ class EmotionClassifier:
         text = re.sub(' +', ' ', text)
 
         # Lemmatize
-        doc = self.nlp(text)
-        text = ' '.join([self.lemmatizer.lemmatize(token.text) for token in doc])
+        doc = nlp(text)
+        text = ' '.join([lemmatizer.lemmatize(token.text) for token in doc])
 
         return text
 

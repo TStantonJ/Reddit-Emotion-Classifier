@@ -116,6 +116,7 @@ def analysis_model_tab():
     # Allow for selection of model
     analysis_selected_model = st.selectbox(
         ("Select am Model"), analysis_model_list, index=None)
+    st.session_state.model = analysis_selected_model
 
     if re.search(r'bert', st.session_state.model, re.IGNORECASE) is not None:
         st.session_state.model_name = 'bert'
@@ -132,7 +133,7 @@ def analysis_model_tab():
     st.session_state.tokenizer = analysis_selected_tokenizer
     st.write([st.session_state.model, st.session_state.tokenizer])
 
-
+    st.session_state.tokenizer = ''
 
     if st.button('Apply Model'):
         cwd = os.getcwd()
