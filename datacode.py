@@ -11,17 +11,17 @@ import re
 from nltk.corpus import stopwords
 import numpy as np
 
-def get_data_from_source(data_source, sample_size):
+def get_data_from_source(data_source, sample_size, data_label, text_label):
     # load data
     df = data_source
-    df.rename(columns={'label':'labels'}, inplace=True) # rename label to label_encoded
+    #df.rename(columns={'label':'labels'}, inplace=True) # rename label to label_encoded
 
     # get subset of df for testing/debugging/development (CHANGE THIS IN THE FUTURE)
-    df = df.groupby('labels').apply(lambda x: x.sample(n=sample_size)).reset_index(drop=True)
+    df = df.groupby(data_label).apply(lambda x: x.sample(n=sample_size)).reset_index(drop=True)
     df = df.sample(frac=1).reset_index(drop=True) # shuffle df
 
-    texts = df['text'].values
-    labels = df['labels'].values
+    texts = df[text_label].values
+    labels = df[data_label].values
 
     return (df, texts, labels)
 
