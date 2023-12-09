@@ -41,7 +41,6 @@ def analysis_data_tabs():
     with dataTab2:
         st.subheader("On the fly data")
         
-
         # You can include a button to trigger the scraping process
         if st.button('Fetch Live Data'):
             # Your scraping logic goes here
