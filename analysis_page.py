@@ -138,7 +138,11 @@ def analysis_model_tab():
     if st.button('Apply Model'):
         cwd = os.getcwd()
 
-        classifier = EmotionClassifier(cwd + '/content/models/' + st.session_state.model, cwd + '/content/models/' +  st.session_state.tokenizer)
+        #classifier = EmotionClassifier(cwd + '/content/models/' + st.session_state.model, cwd + '/content/models/' +  st.session_state.tokenizer)
+        classifier = EmotionClassifier(model_name=st.session_state.model_name, 
+                                        model_path=cwd + '/' + st.session_state.model, 
+                                        tokenizer_path=''#cwd + '/content/models/' +  st.session_state.tokenizer
+                                        )
 
 
         # Arrange Date groups by selected range
