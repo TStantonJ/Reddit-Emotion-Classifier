@@ -13,6 +13,11 @@ import time
 from tqdm import tqdm
 import prawcore
 from concurrent.futures import ThreadPoolExecutor
+from transformers import pipeline
+import pandas as pd
+import numpy as np
+import os
+from collections import Counter
 
 def preprocess_text(self, text):
     # Ensure text is not None
@@ -118,15 +123,13 @@ def analysis_model_tab():
     analysis_selected_model = st.selectbox(
         ("Select am Model"), analysis_model_list, index=None)
     st.session_state.model = analysis_selected_model
-
-    if re.search(r'bert', st.session_state.model, re.IGNORECASE) is not None:
-        st.session_state.model_name = 'bert'
-    elif re.search(r'electra', st.session_state.model, re.IGNORECASE) is not None:
-        st.session_state.model_name = 'electra'
-    elif re.search(r'roberta', st.session_state.model, re.IGNORECASE) is not None:
-        st.session_state.model_name = 'roberta'
-
-    st.session_state.model = analysis_selected_model
+    if analysis_selected_model:
+        if re.search(r'bert', st.session_state.model, re.IGNORECASE) is not None:
+            st.session_state.model_name = 'bert'
+        elif re.search(r'electra', st.session_state.model, re.IGNORECASE) is not None:
+            st.session_state.model_name = 'electra'
+        elif re.search(r'roberta', st.session_state.model, re.IGNORECASE) is not None:
+            st.session_state.model_name = 'roberta'
 
     # Allow for selection of model
     analysis_selected_tokenizer = st.selectbox(
@@ -137,6 +140,7 @@ def analysis_model_tab():
     st.session_state.tokenizer = ''
 
     if st.button('Apply Model'):
+        sentiment = pipeline('sentiment-analysis')
         cwd = os.getcwd()
 
         #classifier = EmotionClassifier(cwd + '/content/models/' + st.session_state.model, cwd + '/content/models/' +  st.session_state.tokenizer)
@@ -148,11 +152,8 @@ def analysis_model_tab():
         print(classifier)
         # Arrange Date groups by selected range
 
-
-
         # Predict on each piece of data and store in its date group
         df = pd.read_csv('output.csv')
-
         sent_scores = []
 
         # datum_preprocessed = classifier.preprocess_text(text)
@@ -160,8 +161,11 @@ def analysis_model_tab():
         df['Sentiment'] = prediction
         df['Score'] = probs
 
+        # apply sentiment analysis
+        df['pos/neg'] = df['Text'].apply(lambda x: sentiment(x)[0]['label'])
+        df['pos/neg score'] = df['Text'].apply(lambda x: sentiment(x)[0]['score'])
+        
         df.to_csv('output_sentiment.csv', index = True)
-
         st.write(df)
 
 
