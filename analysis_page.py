@@ -40,6 +40,20 @@ def analysis_data_tabs():
         
     with dataTab2:
         st.subheader("On the fly data")
+        
+
+        # You can include a button to trigger the scraping process
+        if st.button('Fetch Live Data'):
+            # Your scraping logic goes here
+            # For example, you could scrape data from a website, API, etc.
+            live_data = your_scraping_function()
+
+            # Perform any necessary preprocessing on live_data
+            processed_live_data = preprocess_live_data(live_data)
+
+            # Update the session state or display the data
+            st.session_state.liveDataSource = processed_live_data
+            st.dataframe(processed_live_data, use_container_width=True)
 
 def analysis_model_tab(): 
     # Find current seletion of models
