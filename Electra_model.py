@@ -9,6 +9,11 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.optimizers.schedules import ExponentialDecay
 import os
 import logging
+import re
+import spacy
+import nltk
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
 import csv
 from sklearn.preprocessing import LabelEncoder
 
@@ -20,38 +25,29 @@ class ElectraClassifier:
         self.tokenizer = ElectraTokenizer.from_pretrained(model_name)
         self.model = None
         self.label_names = label_names
+        self.nlp = spacy.load("en_core_web_sm")
+        nltk.download('stopwords')
+        nltk.download('wordnet')
+        self.lemmatizer = WordNetLemmatizer()
 
-    def load_data_from_jsonl(self, filenames):
+    def load_data_from_jsonl(self, filename):
         texts, labels = [], []
-
-        for file_info in filenames:
-            if file_info[-1] == '.jsonl':
-                with open(file_info[0], 'r') as file:
-                    for line_number, line in enumerate(file, 1):
-                        try:
-                            data = json.loads(line)
-                            texts.append(data[file_info[1]])
-                            labels.append(data[file_info[2]])
-                        except json.JSONDecodeError as e:
-                            print(f"Error in line {line_number}: {e}")
-                            break
-            elif file_info[-1] == '.csv':
-                with open(file_info[0], 'r') as file:
-                    csv_reader = csv.DictReader(file)
-                    for row in csv_reader:
-                        texts.append(row[file_info[1]])
-                        labels.append(row[file_info[2]])
-
-        # Label encoding
-        label_encoder = LabelEncoder()
-        encoded_labels = label_encoder.fit_transform(labels)
+        with open(filename, 'r') as file:
+            for line_number, line in enumerate(file, 1):
+                try:
+                    data = json.loads(line)
+                    texts.append(data['text'])
+                    labels.append(data['label'])
+                except json.JSONDecodeError as e:
+                    print(f"Error in line {line_number}: {e}")
+                    break
 
         input_ids, attention_masks = [], []
         for text in texts:
             encoded_dict = self.tokenizer.encode_plus(
                 text,
                 add_special_tokens=True,
-                max_length=512,
+                max_length=128,
                 pad_to_max_length=True,
                 return_attention_mask=True,
                 return_tensors='tf',
@@ -62,10 +58,22 @@ class ElectraClassifier:
 
         input_ids = tf.concat(input_ids, 0)
         attention_masks = tf.concat(attention_masks, 0)
-        encoded_labels = np.array(encoded_labels)
+        labels = np.array(labels)
+        return input_ids, attention_masks, labels, texts
 
-        return input_ids, attention_masks, encoded_labels, texts
 
+    def preprocess_text(self, text):
+        text = re.sub(r'http\S+', '', text)
+        text = re.sub(r'[^a-zA-Z0-9.,;:!?\'\"-]', ' ', text)
+        text = text.lower()
+        text = ' '.join([word for word in text.split() if word not in stopwords.words('english')])
+        text = re.sub(' +', ' ', text)
+
+        # Lemmatize
+        doc = self.nlp(text)
+        text = ' '.join([self.lemmatizer.lemmatize(token.text) for token in doc])
+
+        return text
     def create_model(self, num_labels=6):
         config = ElectraConfig.from_pretrained('google/electra-small-discriminator', num_labels=num_labels)
         self.model = TFElectraForSequenceClassification.from_pretrained('google/electra-small-discriminator', config=config)
@@ -80,14 +88,12 @@ class ElectraClassifier:
         loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
         self.model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
 
-
-    def train_model(self, train_data, validation_data, epochs=1, batch_size=64):
+    def train_model(self, train_data, validation_data, epochs=15, batch_size=128):
         model_path = os.path.join(os.getcwd(), 'best_model_electra')
-        logging.info(f"Model will be saved to: {model_path}")
+        logging.info(f"Model and tokenizer will be saved to: {model_path}")
 
         callbacks = [
-            EarlyStopping(monitor='val_loss', patience=3),
-            ModelCheckpoint(filepath=model_path, monitor='val_loss', save_best_only=True, save_format='tf')
+            EarlyStopping(monitor='val_loss', patience=3)
         ]
 
         try:
@@ -99,6 +105,11 @@ class ElectraClassifier:
                 callbacks=callbacks,
                 verbose=1
             )
+
+            # Save the model and the tokenizer
+            self.model.save_pretrained(model_path)
+            self.tokenizer.save_pretrained(model_path)
+
         except Exception as e:
             logging.error(f"Error during model training: {e}")
             raise
@@ -124,17 +135,16 @@ class ElectraClassifier:
 
     # model_path is the directory to tf model
     def load_model(self, model_path):
-        return tf.keras.models.load_model(model_path)
+        return TFElectraForSequenceClassification.from_pretrained(model_path)
 
-    def infer(self, model, input_csv, text_attribute_name):
+    def infer(self, model, text):
 
-        data = pd.read_csv(input_csv)
         input_ids, attention_masks = [], []
-        for text in data[text_attribute_name]:
+        for text in text:
             encoded_dict = self.tokenizer.encode_plus(
                 text,
                 add_special_tokens=True,
-                max_length=512,
+                max_length=128,
                 pad_to_max_length=True,
                 return_attention_mask=True,
                 return_tensors='tf',
@@ -151,18 +161,13 @@ class ElectraClassifier:
 
         predicted_labels = [self.label_names[label] for label in predicted_labels]
 
-        data['sentiment'] = predicted_labels
-
-        output_csv = 'output_predictions_electra.csv'
-        data.to_csv(output_csv, index=False)
-
-        return output_csv
+        return predicted_labels
 
 def main():
 
     label_names = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
     classifier = ElectraClassifier(label_names)
-    input_ids, attention_masks, labels, texts = classifier.load_data_from_jsonl([('hug_data.jsonl','text','label','.jsonl'),('merged_reddit_data.csv','Text','Sentiment','.csv')])
+    input_ids, attention_masks, labels, texts = classifier.load_data_from_jsonl('hug_data.jsonl', )
     classifier.create_model(num_labels=6)
 
     # Convert tensors to NumPy arrays
@@ -195,6 +200,19 @@ def main():
     print("\nClassification Report:")
     print(report_df)
 
+
+def from_pretrained(model_path):
+    print("here")
+    label_names = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
+    classifier = ElectraClassifier(label_names)
+
+    # Load the model and the tokenizer
+    classifier.model = TFElectraForSequenceClassification.from_pretrained(model_path)
+    classifier.tokenizer = ElectraTokenizer.from_pretrained(model_path)
+
+    sentiment = classifier.infer(classifier.model, ['Please figure out the sentiment for this text. Scared if it actually works'])
+    print(sentiment)
+
 if __name__ == "__main__":
-    main()
+    from_pretrained('best_model_electra')
 

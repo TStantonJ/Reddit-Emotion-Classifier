@@ -12,12 +12,25 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
+import re
+import spacy
+import nltk
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
+import csv
+from sklearn.preprocessing import LabelEncoder
+
 class RobertaClassifier:
 
     def __init__(self, label_names, model_name='roberta-base'):
         self.tokenizer = RobertaTokenizer.from_pretrained(model_name)
         self.model = None
         self.label_names = label_names
+
+        self.nlp = spacy.load("en_core_web_sm")
+        nltk.download('stopwords')
+        nltk.download('wordnet')
+        self.lemmatizer = WordNetLemmatizer()
 
     # ... [rest of the code remains the same as in ElectraClassifier until create_model method] ...
 
@@ -31,11 +44,23 @@ class RobertaClassifier:
             decay_rate=0.85,            # Adjusted decay rate
             staircase=True
         )
+
         optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
         loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
         self.model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
 
+    def preprocess_text(self, text):
+        text = re.sub(r'http\S+', '', text)
+        text = re.sub(r'[^a-zA-Z0-9.,;:!?\'\"-]', ' ', text)
+        text = text.lower()
+        text = ' '.join([word for word in text.split() if word not in stopwords.words('english')])
+        text = re.sub(' +', ' ', text)
 
+        # Lemmatize
+        doc = self.nlp(text)
+        text = ' '.join([self.lemmatizer.lemmatize(token.text) for token in doc])
+
+        return text
 
     def load_data_from_jsonl(self, filename):
         texts, labels = [], []
@@ -70,13 +95,13 @@ class RobertaClassifier:
 
 
 
-    def train_model(self, train_data, validation_data, epochs=1, batch_size=128):
+
+    def train_model(self, train_data, validation_data, epochs=15, batch_size=128):
         model_path = os.path.join(os.getcwd(), 'best_model_roberta')
-        logging.info(f"Model will be saved to: {model_path}")
+        logging.info(f"Model and tokenizer will be saved to: {model_path}")
 
         callbacks = [
-            EarlyStopping(monitor='val_loss', patience=3),
-            ModelCheckpoint(filepath=model_path, monitor='val_loss', save_best_only=True, save_format='tf')
+            EarlyStopping(monitor='val_loss', patience=3)
         ]
 
         try:
@@ -88,6 +113,11 @@ class RobertaClassifier:
                 callbacks=callbacks,
                 verbose=1
             )
+
+            # Save the model and the tokenizer
+            self.model.save_pretrained(model_path)
+            self.tokenizer.save_pretrained(model_path)
+
         except Exception as e:
             logging.error(f"Error during model training: {e}")
             raise
@@ -113,17 +143,16 @@ class RobertaClassifier:
 
     # model_path is the directory to tf model
     def load_model(self, model_path):
-        return tf.keras.models.load_model(model_path)
+        return TFRobertaForSequenceClassification.from_pretrained(model_path)
 
-    def infer(self, model, input_csv, text_attribute_name):
+    def infer(self, model, text):
 
-        data = pd.read_csv(input_csv)
         input_ids, attention_masks = [], []
-        for text in data[text_attribute_name]:
+        for text in text:
             encoded_dict = self.tokenizer.encode_plus(
                 text,
                 add_special_tokens=True,
-                max_length=512,
+                max_length=128,
                 pad_to_max_length=True,
                 return_attention_mask=True,
                 return_tensors='tf',
@@ -140,12 +169,7 @@ class RobertaClassifier:
 
         predicted_labels = [self.label_names[label] for label in predicted_labels]
 
-        data['sentiment'] = predicted_labels
-
-        output_csv = 'output_predictions_electra.csv'
-        data.to_csv(output_csv, index=False)
-
-        return output_csv
+        return predicted_labels
 
 def main():
 
@@ -183,6 +207,18 @@ def main():
 
     print("\nClassification Report:")
     print(report_df)
+
+def from_pretrained(model_path):
+    print("here")
+    label_names = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
+    classifier = TFRobertaForSequenceClassification(label_names)
+
+    # Load the model and the tokenizer
+    classifier.model = TFRobertaForSequenceClassification.from_pretrained(model_path)
+    classifier.tokenizer = RobertaTokenizer.from_pretrained(model_path)
+
+    sentiment = classifier.infer(classifier.model, ['Please figure out the sentiment for this text. Scared if it actually works'])
+    print(sentiment)
 
 if __name__ == "__main__":
     main()
