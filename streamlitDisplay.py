@@ -17,11 +17,11 @@ with mainTab2:
     train_side_bar()
 
     # Data Section
-    #train_data_tabs()
+    train_data_tabs()
     st.divider()
 
     # Model Section
-    #train_model_tab()
+    train_model_tab()
     st.divider()
 
     # Analysis Section
