@@ -64,6 +64,22 @@ def analysis_data_tabs():
         
     with dataTab2:
         st.subheader("On the fly data")
+
+        # button for num of comments
+        num_comments = st.number_input('Number of comments', min_value=1, max_value=100, value=3, step=1, format=None, key=None)
+
+        # button for number of posts
+        num_posts = st.number_input('Number of posts', min_value=1, max_value=100, value=5, step=1, format=None, key=None)
+
+        # button for subreddit name
+        subreddit_name = st.text_input('Subreddit name', value='wallstreetbets', max_chars=None, key=None, type='default')
+
+        # button for interval
+        interval = st.selectbox('Interval', ('daily', 'weekly', 'monthly'), index=1, key=None)
+
+        # button for output file
+        #output_file = st.text_input('Output file name', value='reddit_posts_and_comments.csv', #max_chars=None, key=None, type='default')
+
         
         # You can include a button to trigger the scraping process
         if st.button('Fetch Live Data'):
@@ -71,21 +87,21 @@ def analysis_data_tabs():
             df = reddit_scraper('nFKOCvQQEIoW2hFeVG6kfA', 
                                 '5BBB4fr-HMPtO8f4jZhle74-fYcDkQ', 
                                 'Icy_Process3191', 
-                                5, 
-                                'wallstreetbets', 
-                                'weekly', 
-                                3, 
+                                num_posts, 
+                                subreddit_name, 
+                                interval, 
+                                num_comments, 
                                 'reddit_posts_and_comments.csv')
             
+            #st.write(df)
             
            # Assuming the reddit_scraper function returns a dataframe
             if df is not None and not df.empty:
-                st.write("First few rows of the fetched data:")
+                st.write(f"First few rows the fetched data (out of {len(df)}):")
                 st.dataframe(df.head(), use_container_width=True)
             else:
                 st.write("No live data fetched")
                 
-
 def analysis_model_tab(): 
     # Find current seletion of models
     analysis_model_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('model', x)])
@@ -156,7 +172,7 @@ def reddit_scraper(client_id, client_secret, user_agent, num_posts, subreddit_na
 
         def fetch_posts(self, num_posts, sub_name, interval):
             subreddit = self.reddit.subreddit(sub_name)
-            posts = subreddit.top(time_filter='week', limit=num_posts)
+            posts = subreddit.top(time_filter='month', limit=num_posts)
             posts_list = list(posts)
             posts_list.sort(key=lambda post: post.created_utc, reverse=True)
 
@@ -206,10 +222,11 @@ def reddit_scraper(client_id, client_secret, user_agent, num_posts, subreddit_na
 
             data.extend([comment for comment_list in comments_list for comment in comment_list])
 
-            #print(len(data))
             df = pd.DataFrame(data)
             #df.to_csv(output_file, index=True)
+            return df
 
     scraper = RedditScraper(client_id, client_secret, user_agent)
-    return scraper.create(num_posts, subreddit_name, interval, top_comments_count, output_file)
+    tmp = scraper.create(num_posts, subreddit_name, interval, top_comments_count, output_file)
+    return tmp
 
