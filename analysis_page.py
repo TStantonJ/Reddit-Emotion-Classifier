@@ -69,17 +69,23 @@ def analysis_data_tabs():
     with dataTab2:
         st.subheader("On the fly data")
 
-        # button for num of comments
-        num_comments = st.number_input('Number of comments', min_value=1, max_value=100, value=3, step=1, format=None, key=None)
-
-        # button for number of posts
-        num_posts = st.number_input('Number of posts', min_value=1, max_value=100, value=5, step=1, format=None, key=None)
+        commentscolumn, postscolumn = st.columns(2)
+        with commentscolumn:
+            # button for num of comments
+            num_comments = st.number_input('Number of comments', min_value=1, max_value=100, value=3, step=1, format=None, key=None)
+        with postscolumn:
+            # button for number of posts
+            num_posts = st.number_input('Number of posts', min_value=1, max_value=100, value=5, step=1, format=None, key=None)
 
         # button for subreddit name
         subreddit_name = st.text_input('Subreddit name', value='wallstreetbets', max_chars=None, key=None, type='default')
 
-        # button for interval
-        interval = st.selectbox('Interval', ('daily', 'weekly', 'monthly'), index=1, key=None)
+        timeFiltercolumn, intervalcolumn = st.columns(2)
+        with timeFiltercolumn:
+            time_filter = st.selectbox('Time filter(Draw from the past ...)', ('day', 'week', 'month', 'year'), index=2, key=None)
+        with intervalcolumn:
+            # button for interval
+            interval = st.selectbox('Interval', ('daily', 'weekly', 'monthly'), index=1, key=None)
 
         # button for output file
         #output_file = st.text_input('Output file name', value='reddit_posts_and_comments.csv', #max_chars=None, key=None, type='default')
@@ -91,11 +97,12 @@ def analysis_data_tabs():
             df = reddit_scraper('nFKOCvQQEIoW2hFeVG6kfA', 
                                 '5BBB4fr-HMPtO8f4jZhle74-fYcDkQ', 
                                 'Icy_Process3191', 
-                                num_posts, 
-                                subreddit_name, 
-                                interval, 
-                                num_comments, 
-                                'reddit_posts_and_comments.csv')
+                                num_posts=num_posts,
+                                subreddit_name=subreddit_name, 
+                                time_filter=time_filter, 
+                                interval=interval, 
+                                top_comments_count=num_comments, 
+                                output_file='reddit_posts_and_comments.csv')
             
             #st.write(df)
             
@@ -215,7 +222,7 @@ def arrange_data(df, splitBy):
     elif splitBy == 'y':
         pass
 
-def reddit_scraper(client_id, client_secret, user_agent, num_posts, subreddit_name, interval, top_comments_count, output_file):
+def reddit_scraper(client_id, client_secret, user_agent, num_posts, subreddit_name, interval, time_filter, top_comments_count, output_file):
     class RedditScraper:
         def __init__(self, client_id, client_secret, user_agent):
             self.reddit = praw.Reddit(
@@ -225,7 +232,8 @@ def reddit_scraper(client_id, client_secret, user_agent, num_posts, subreddit_na
 
         def fetch_posts(self, num_posts, sub_name, interval):
             subreddit = self.reddit.subreddit(sub_name)
-            posts = subreddit.top(time_filter='month', limit=num_posts)
+            print(time_filter)
+            posts = subreddit.top(time_filter=str(time_filter), limit=num_posts)
             posts_list = list(posts)
             posts_list.sort(key=lambda post: post.created_utc, reverse=True)
 
