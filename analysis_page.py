@@ -103,8 +103,12 @@ def analysis_data_tabs():
                 st.write("No live data fetched")
                 
 def analysis_model_tab(): 
-    # Find current seletion of models
-    analysis_model_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('model', x)])
+  
+    model_directory = "content/models"
+    all_items = glob.glob(os.path.join(model_directory, "*"))
+    analysis_model_files = sorted([x for x in all_items if re.search('model', os.path.basename(x))])
+
+
     analysis_model_list = [f"{x}" for x in analysis_model_files]
     analysis_tokenizer_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('tokenizer', x)])
     analysis_tokenizer_list = [f"{x}" for x in analysis_tokenizer_files]
@@ -112,6 +116,14 @@ def analysis_model_tab():
     # Allow for selection of model
     analysis_selected_model = st.selectbox(
         ("Select am Model"), analysis_model_list, index=None)
+
+    if re.search(r'bert', st.session_state.model, re.IGNORECASE) is not None:
+        st.session_state.model_name = 'bert'
+    elif re.search(r'electra', st.session_state.model, re.IGNORECASE) is not None:
+        st.session_state.model_name = 'electra'
+    elif re.search(r'roberta', st.session_state.model, re.IGNORECASE) is not None:
+        st.session_state.model_name = 'roberta'
+
     st.session_state.model = analysis_selected_model
 
     # Allow for selection of model
@@ -120,9 +132,13 @@ def analysis_model_tab():
     st.session_state.tokenizer = analysis_selected_tokenizer
     st.write([st.session_state.model, st.session_state.tokenizer])
 
+
+
     if st.button('Apply Model'):
         cwd = os.getcwd()
+
         classifier = EmotionClassifier(cwd + '/content/models/' + st.session_state.model, cwd + '/content/models/' +  st.session_state.tokenizer)
+
 
         # Arrange Date groups by selected range
         grouped_data = arrange_data(st.session_state.dataSource, 'm')
@@ -135,23 +151,47 @@ def analysis_model_tab():
             for _,datum in grouped_data[time_period].iterrows():
                 #print(datum['Text'])
                 datum_text = datum['Text']
-                datum_preprocessed =classifier.preprocess_text(datum_text)
+
+                datum_preprocessed = classifier.preprocess_text(datum_text)
+
                 prediction = classifier.predict_emotion(datum_preprocessed)
+
                 sent_scores[time_period].append(prediction)
 
-        # Average date groups
-        for i in range(len(sent_scores)):
-            average_holder = []
-            for j in range(len(sent_scores[i])):
-                for k in range(len(sent_scores[i][j])):
-                    average_holder[k].append(sent_scores[i][j][k])
-            
-            for emotion in range(len(average_holder)):
-                average_holder[emotion] = statistics.mean(average_holder[emotion])
+        # # Average date groups
+        # for i in range(len(sent_scores)):
+        #     average_holder = []
+        #     for j in range(len(sent_scores[i])):
+        #         for k in range(len(sent_scores[i][j])):
+        #             average_holder[k].append(sent_scores[i][j][k])
+        #
+        #     for emotion in range(len(average_holder)):
+        #         average_holder[emotion] = statistics.mean(average_holder[emotion])
+        #
+        # # Write averages for now
+        # st.write(average_holder)
 
-        # Write averages for now
+        if sent_scores:
+            num_emotions = len(sent_scores[0][0])
+            average_holder = [[] for _ in range(num_emotions)]
+        else:
+            average_holder = []
+
+        for sentence_scores in sent_scores:
+            for emotion_scores in sentence_scores:
+                for i, score in enumerate(emotion_scores):
+                    average_holder[i].append(score)
+
+
+        for i in range(len(average_holder)):
+            average_holder[i] = statistics.mean(average_holder[i]) if average_holder[i] else 0
+
         st.write(average_holder)
 
+        if st.button('Show Plot'):
+            fig = plot_sentiment_scores(average_holder)
+            st.pyplot(fig)
+            
 def arrange_data(df, splitBy):
     if splitBy == 'd':
         pass
@@ -230,3 +270,13 @@ def reddit_scraper(client_id, client_secret, user_agent, num_posts, subreddit_na
     tmp = scraper.create(num_posts, subreddit_name, interval, top_comments_count, output_file)
     return tmp
 
+
+def plot_sentiment_scores(average_scores):
+    plt.figure(figsize=(10, 6))
+    plt.bar(range(len(average_scores)), average_scores, color='skyblue')
+    plt.xlabel('Interval Number')
+    plt.ylabel('Average Sentiment Score')
+    plt.title('Average Sentiment Scores per Interval')
+    plt.xticks(range(len(average_scores)))
+    plt.ylim([0, 1])
+    return plt
