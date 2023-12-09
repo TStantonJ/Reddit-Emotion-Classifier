@@ -175,18 +175,9 @@ def analysis_model_tab():
         df.to_csv('output_sentiment.csv', index = True)
         st.write(df)
 
+        average_scores = df.groupby(['Interval Number', 'Sentiment'])['Score'].mean().reset_index()
+        st.write(average_scores)
 
-        for i in range(len(sent_scores)):
-            average_holder = []
-            for j in range(len(sent_scores[i])):
-                for k in range(len(sent_scores[i][j])):
-                    average_holder[k].append(sent_scores[i][j][k])
-
-            for emotion in range(len(average_holder)):
-                average_holder[emotion] = statistics.mean(average_holder[emotion])
-
-        # Write averages for now
-        st.write(average_holder)
 
 
 def reddit_scraper(client_id, client_secret, user_agent, num_posts, subreddit_name, interval, time_filter, top_comments_count, output_file):
