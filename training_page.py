@@ -8,11 +8,6 @@ from suggestions import  train_model, evaluate_model
 from datacode import get_data_from_source, split_data, tokenize_tensorize_data
 from Model_ForGIT6_model_apply import EmotionClassifier
 
-def train_side_bar():
-    with st.sidebar:
-        if st.button('Reset'):
-            # Clear the chat history
-            st.session_state.messages = []
 
 # Function taht controls the data selection tabs
 # TODO: add current selected data in tab header
@@ -38,16 +33,16 @@ def train_data_tabs():
         st.session_state.sampleSize = 14959
         st.session_state.butTokenizeDsabled = False
     
-    labelColumn, textColumn = st.columns(2)
-    with textColumn:
-        train_text_selection = st.selectbox(
-        ("Select a column as text"), st.session_state.text, index=None)
-        st.session_state.choosenText = train_text_selection
-    with labelColumn:
-        # Allow for selection of label and text
-        train_label_selection = st.selectbox(
-            ("Select a column as label"), st.session_state.labels, index=None)
-        st.session_state.choosenLabel = train_label_selection
+        labelColumn, textColumn = st.columns(2)
+        with textColumn:
+            train_text_selection = st.selectbox(
+            ("Select a column as text"), st.session_state.text, index=None)
+            st.session_state.choosenText = train_text_selection
+        with labelColumn:
+            # Allow for selection of label and text
+            train_label_selection = st.selectbox(
+                ("Select a column as label"), st.session_state.labels, index=None)
+            st.session_state.choosenLabel = train_label_selection
     
     
     # Display data
