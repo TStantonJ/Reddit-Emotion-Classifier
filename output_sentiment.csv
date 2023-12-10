@@ -1,97 +1,50 @@
 ,Unnamed: 0,Post/Comment,ID,Text,Creation Date,Interval Number,Sentiment,Sadness,Joy,Love,Anger,Fear,Surprise,pos/neg,pos/neg score
-0,0,Post,18cyln6,Some juicy loss porn from the past,2023-12-07,0,Joy,0.0089531895,0.98081964,0.0020085413,0.005248412,0.0026523985,0.00031777797,NEGATIVE,0.9603027105331421
-1,1,Post,18bekhf,this remains one of the best videos of all time,2023-12-05,1,Joy,0.00025673467,0.998963,0.0006052124,3.8292135e-05,4.7826932e-05,8.882825e-05,POSITIVE,0.9998506307601929
-2,2,Post,18akmqx,Me trying to trade my way out of a 90% loss on my life savings,2023-12-04,2,Sadness,0.83918786,0.08939623,0.0019481775,0.057145152,0.011014196,0.001308436,NEGATIVE,0.9989042282104492
-3,3,Post,189vz8k,One of us!,2023-12-03,2,Sadness,0.56770587,0.25189215,0.006996663,0.046405103,0.124050796,0.0029494113,POSITIVE,0.9990423321723938
-4,4,Post,1884rxo,Elon phones a friend,2023-12-01,3,Joy,0.023742862,0.7211396,0.07797893,0.14882007,0.027150765,0.0011677293,POSITIVE,0.5879194736480713
-5,5,Post,1873iwc,"Rare moment of ""F*ck you money""",2023-11-29,4,Sadness,0.49607158,0.35870373,0.002862609,0.028257132,0.10902036,0.0050845635,POSITIVE,0.995613694190979
-6,6,Post,18739kt,Elon tells Bob Iger to “go f*ck yourself”,2023-11-29,4,Anger,0.11124715,0.20644549,0.0036861154,0.65451187,0.021995306,0.0021140408,NEGATIVE,0.922960102558136
-7,7,Post,1828p09,No cap bruv,2023-11-23,5,Joy,0.21960394,0.6215174,0.004495281,0.0547457,0.09646988,0.00316778,NEGATIVE,0.9987058639526367
-8,8,Post,17x1k66,Biden calls Xi a dictator. Secretary of State is not happy about that. Stock Market will feel the impact tomorrow. Prepare for more the Dip,2023-11-17,6,Joy,0.00039431656,0.9989429,0.00031277025,0.00010052943,0.00013349419,0.00011595346,NEGATIVE,0.9916130304336548
-9,9,Post,17wvwke,Puts on all Weed Companies like $TILRAY $SUNDIAL,2023-11-16,6,Anger,0.013897536,0.010947137,0.00051860866,0.9692514,0.004518111,0.000867272,NEGATIVE,0.9888997077941895
-10,10,Comment,18cyln6,"
-**User Report**| | | |
-:--|:--|:--|:--
-**Total Submissions**|10|**First Seen In WSB**|2 years ago
-**Total Comments**|1127|**Previous Best DD**|
-**Account Age**|2 years|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-12-07,0,Surprise,0.2756104,0.10862059,0.0025107162,0.14234875,0.032632794,0.43827674,NEGATIVE,0.9944512248039246
-11,11,Comment,18cyln6,the reporter jerking off while the poor schmuck opens his 401k statement ![img](emote|t5_2th52|4271),2023-12-07,0,Anger,0.28068313,0.116551034,0.0024709166,0.57440734,0.023188984,0.0026985856,NEGATIVE,0.9994686245918274
-12,12,Comment,18cyln6,"It's still somewhat infuriating that these people had their life savings in a relatively low risk fund most likely through their employer, only to get fucked over by the same institutions they had their assets with.
-
-The gut punch is only one individual was found guilty and sentenced, absolute bonkers.",2023-12-07,0,Anger,0.00021640873,2.6181175e-05,1.1107459e-05,0.99841475,0.001297938,3.3551252e-05,NEGATIVE,0.9995132684707642
-13,13,Comment,18bekhf,"
-**User Report**| | | |
-:--|:--|:--|:--
-**Total Submissions**|10|**First Seen In WSB**|3 weeks ago
-**Total Comments**|36|**Previous Best DD**|
-**Account Age**|1 month|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-12-05,1,Surprise,0.28651798,0.10556953,0.0025400384,0.14591496,0.031977024,0.42748055,NEGATIVE,0.9946092367172241
-14,14,Comment,18bekhf,Upstart is a loan company I know this because I took out a loan and never paid it back. They keep calling but I just pretend they are breaking up.,2023-12-05,1,Sadness,0.92325884,0.014855259,0.0010904183,0.041143775,0.018912978,0.000738731,NEGATIVE,0.999229907989502
-15,15,Comment,18bekhf,"""It upstarts and holds things""",2023-12-05,1,Anger,0.004666252,0.0038682502,0.00050850684,0.9769199,0.013710208,0.00032684588,POSITIVE,0.9989823698997498
-16,16,Comment,18akmqx,"
+0,0,Post,18akmqx,Me trying to trade my way out of a 90% loss on my life savings,2023-12-04,0,Sadness,0.839188,0.089396246,0.001948176,0.057145078,0.011014167,0.0013084343,NEGATIVE,0.9989042282104492
+1,1,Post,189vz8k,One of us!,2023-12-03,0,Sadness,0.5677062,0.251892,0.006996674,0.046405077,0.124050595,0.002949409,POSITIVE,0.9990423321723938
+2,2,Post,1884rxo,Elon phones a friend,2023-12-01,0,Joy,0.023742875,0.7211392,0.07797907,0.14882028,0.027150748,0.0011677275,POSITIVE,0.587921142578125
+3,3,Post,18739kt,Elon tells Bob Iger to “go f*ck yourself”,2023-11-29,0,Anger,0.11124754,0.20644557,0.0036861168,0.65451145,0.02199527,0.0021140412,NEGATIVE,0.9229602813720703
+4,4,Post,17wvwke,Puts on all Weed Companies like $TILRAY $SUNDIAL,2023-11-16,1,Anger,0.013897443,0.0109470375,0.00051860575,0.9692514,0.004518089,0.0008672671,NEGATIVE,0.9888997077941895
+5,5,Comment,18akmqx,"
 **User Report**| | | |
 :--|:--|:--|:--
 **Total Submissions**|10|**First Seen In WSB**|2 years ago
 **Total Comments**|1022|**Previous Best DD**|
-**Account Age**|2 years|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-12-04,2,Surprise,0.3008153,0.10966774,0.0025425155,0.1423936,0.032872174,0.41170865,NEGATIVE,0.9944444298744202
-17,17,Comment,18akmqx,Cats just have a different relationship with gravity than the rest of us.,2023-12-04,2,Fear,0.17156996,0.039267216,0.0021937657,0.33865675,0.44623074,0.0020815379,POSITIVE,0.99679034948349
-18,18,Comment,18akmqx,Lil Buddy Just fucked off 3 lives for absolutely nothing 🤦🏾‍♂️🤦🏾‍♂️🤦🏾‍♂️🤦🏾‍♂️,2023-12-04,2,Anger,0.0001812212,1.884608e-05,9.071833e-06,0.99820685,0.0015420028,4.20824e-05,NEGATIVE,0.9993032217025757
-19,19,Comment,189vz8k,"
+**Account Age**|2 years|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-12-04,0,Surprise,0.3008153,0.10966773,0.0025425176,0.14239363,0.032872163,0.41170862,NEGATIVE,0.9944444298744202
+6,6,Comment,18akmqx,Cats just have a different relationship with gravity than the rest of us.,2023-12-04,0,Fear,0.17157044,0.039267205,0.0021937666,0.33865818,0.44622877,0.0020815376,POSITIVE,0.99679034948349
+7,7,Comment,18akmqx,Lil Buddy Just fucked off 3 lives for absolutely nothing 🤦🏾‍♂️🤦🏾‍♂️🤦🏾‍♂️🤦🏾‍♂️,2023-12-04,0,Anger,0.0001812208,1.8846076e-05,9.071831e-06,0.9982066,0.0015420055,4.2082353e-05,NEGATIVE,0.9993032217025757
+8,8,Comment,189vz8k,"
 **User Report**| | | |
 :--|:--|:--|:--
 **Total Submissions**|1|**First Seen In WSB**|2 months ago
 **Total Comments**|11|**Previous Best DD**|
-**Account Age**|3 months|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-12-03,2,Surprise,0.29783237,0.10048347,0.0026560894,0.17047134,0.03057611,0.3979805,NEGATIVE,0.9949672818183899
-20,20,Comment,189vz8k,"The story continues. After spending over $9b for AOL and Yahoo, Verizon sold both companies for less than half what it paid for them just few years ago!",2023-12-03,2,Joy,0.047048,0.9351855,0.0023968606,0.010976113,0.0027388125,0.0016546778,NEGATIVE,0.9781516194343567
-21,21,Comment,189vz8k,"In 1998 Yahoo was positioned to become Google, Amazon and Facebook combined. They managed to do almost everything wrong, other than buying a chunk of Alibaba (although they also managed to screw that one up eventually).",2023-12-03,2,Anger,0.001182043,0.0004207187,5.0894414e-05,0.9817456,0.016507965,9.2684335e-05,NEGATIVE,0.9982471466064453
-22,22,Comment,1884rxo,"
+**Account Age**|3 months|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-12-03,0,Surprise,0.29783297,0.10048372,0.002656092,0.1704719,0.030576073,0.39797917,NEGATIVE,0.9949672818183899
+9,9,Comment,189vz8k,"The story continues. After spending over $9b for AOL and Yahoo, Verizon sold both companies for less than half what it paid for them just few years ago!",2023-12-03,0,Joy,0.04704791,0.93518573,0.0023968576,0.010976074,0.002738808,0.0016546773,NEGATIVE,0.9781514406204224
+10,10,Comment,189vz8k,"In 1998 Yahoo was positioned to become Google, Amazon and Facebook combined. They managed to do almost everything wrong, other than buying a chunk of Alibaba (although they also managed to screw that one up eventually).",2023-12-03,0,Anger,0.0011820438,0.00042071912,5.0894516e-05,0.9817457,0.016507935,9.268443e-05,NEGATIVE,0.9982471466064453
+11,11,Comment,1884rxo,"
 **User Report**| | | |
 :--|:--|:--|:--
 **Total Submissions**|10|**First Seen In WSB**|6 months ago
 **Total Comments**|418|**Previous Best DD**|
-**Account Age**|6 months|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-12-01,3,Sadness,0.35874397,0.123638295,0.002760183,0.17534907,0.027048443,0.31246006,NEGATIVE,0.9951554536819458
-23,23,Comment,1884rxo,"The part where he didn’t know the name of his interviewer, classic",2023-12-01,3,Anger,0.017410567,0.0018830536,0.00024750916,0.9723679,0.007839262,0.00025172616,NEGATIVE,0.9996117949485779
-24,24,Comment,1884rxo,"Good shit
+**Account Age**|6 months|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-12-01,0,Sadness,0.35874373,0.123638324,0.0027601866,0.17534928,0.02704845,0.31246006,NEGATIVE,0.9951554536819458
+12,12,Comment,1884rxo,"The part where he didn’t know the name of his interviewer, classic",2023-12-01,0,Anger,0.017410573,0.0018830516,0.00024750913,0.97236776,0.007839235,0.00025172567,NEGATIVE,0.9996117949485779
+13,13,Comment,1884rxo,"Good shit
 
-I remember watching that episode of millionaire live, such a legendary moment",2023-12-01,3,Joy,0.10302381,0.852665,0.0028961066,0.007549775,0.030270165,0.0035952446,POSITIVE,0.9887058734893799
-25,25,Comment,1873iwc,"
-**User Report**| | | |
-:--|:--|:--|:--
-**Total Submissions**|10|**First Seen In WSB**|2 weeks ago
-**Total Comments**|34|**Previous Best DD**|
-**Account Age**|4 weeks|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-11-29,4,Surprise,0.2806512,0.09614397,0.00255503,0.14979568,0.032263108,0.43859103,NEGATIVE,0.9946790933609009
-26,26,Comment,1873iwc,Wait.. this is real? Like.. really real?,2023-11-30,4,Sadness,0.6895023,0.080987945,0.0017007625,0.04677121,0.17825396,0.002783703,NEGATIVE,0.9597041606903076
-27,27,Comment,1873iwc,"I swear he stopped himself from saying ""TAKE A BIG STEP BACK AND LITERALLY FUCK YOUR OWN FACE!""",2023-11-30,4,Sadness,0.5029254,0.21109958,0.0027650467,0.25309733,0.027696505,0.0024160894,NEGATIVE,0.999574601650238
-28,28,Comment,18739kt,"
+I remember watching that episode of millionaire live, such a legendary moment",2023-12-01,0,Joy,0.103023626,0.8526653,0.0028961021,0.0075497734,0.03027009,0.003595249,POSITIVE,0.9887058734893799
+14,14,Comment,18739kt,"
 **User Report**| | | |
 :--|:--|:--|:--
 **Total Submissions**|8|**First Seen In WSB**|1 year ago
 **Total Comments**|2|**Previous Best DD**|
-**Account Age**|6 years|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-11-29,4,Surprise,0.30189443,0.116105884,0.0027295323,0.16609828,0.029682439,0.38348946,NEGATIVE,0.9940458536148071
-29,29,Comment,18739kt,Another musk moment in the books. Should be a quiet 72hrs before the next one.,2023-11-29,4,Fear,0.037678074,0.02235872,0.00078046066,0.008825281,0.92962843,0.00072911894,NEGATIVE,0.9979633092880249
-30,30,Comment,18739kt,Elon should be posting his ideas of this sub.. He belongs here.,2023-11-29,4,Anger,0.102593854,0.15192744,0.002131302,0.6836922,0.05667332,0.0029819447,NEGATIVE,0.988731861114502
-31,31,Comment,1828p09,"
-**User Report**| | | |
-:--|:--|:--|:--
-**Total Submissions**|1|**First Seen In WSB**|2 years ago
-**Total Comments**|105|**Previous Best DD**|
-**Account Age**|2 years|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-11-23,5,Surprise,0.29423022,0.11178521,0.0027297654,0.1635718,0.029449994,0.39823294,NEGATIVE,0.9935654997825623
-32,32,Comment,1828p09,"Suggested tips are too low - by then we'll be seeing 25, 35 and 45%",2023-11-23,5,Anger,0.0053827944,0.003644846,0.0004005908,0.9482328,0.041956984,0.00038206964,NEGATIVE,0.9987543821334839
-33,33,Comment,1828p09,"On a serious note, are legit financial advisors actually useful?",2023-11-23,5,Anger,0.06561112,0.26267794,0.0056189015,0.62132704,0.04360516,0.0011598306,NEGATIVE,0.9349360466003418
-34,34,Comment,17x1k66,"
-**User Report**| | | |
-:--|:--|:--|:--
-**Total Submissions**|9|**First Seen In WSB**|1 week ago
-**Total Comments**|18|**Previous Best DD**|
-**Account Age**|2 weeks|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-11-17,6,Surprise,0.28404924,0.11020785,0.002604159,0.14755532,0.031156186,0.4244272,NEGATIVE,0.9946979284286499
-35,35,Comment,17x1k66,I thought he already said that yesterday.,2023-11-17,6,Anger,0.04607895,0.017741691,0.0006365475,0.5732806,0.35969156,0.0025706706,NEGATIVE,0.9978166818618774
-36,36,Comment,17x1k66,This guy poker face so bad,2023-11-17,6,Anger,0.03762018,0.047068667,0.0012176363,0.8228563,0.09045461,0.0007826413,NEGATIVE,0.9997902512550354
-37,37,Comment,17wvwke,"
+**Account Age**|6 years|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-11-29,0,Surprise,0.30189458,0.116106026,0.0027295372,0.16609833,0.029682398,0.38348904,NEGATIVE,0.9940458536148071
+15,15,Comment,18739kt,Another musk moment in the books. Should be a quiet 72hrs before the next one.,2023-11-29,0,Fear,0.037678078,0.02235873,0.0007804613,0.008825287,0.92962825,0.00072911876,NEGATIVE,0.9979633092880249
+16,16,Comment,18739kt,Elon should be posting his ideas of this sub.. He belongs here.,2023-11-29,0,Anger,0.102593854,0.1519278,0.002131307,0.6836916,0.056673456,0.0029819505,NEGATIVE,0.988731861114502
+17,17,Comment,17wvwke,"
 **User Report**| | | |
 :--|:--|:--|:--
 **Total Submissions**|7|**First Seen In WSB**|6 days ago
 **Total Comments**|16|**Previous Best DD**|
-**Account Age**|2 weeks|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-11-16,6,Surprise,0.29639307,0.11160877,0.002655343,0.14807892,0.03154582,0.40971813,NEGATIVE,0.9952878952026367
-38,38,Comment,17wvwke,The dude who just rolled snoop's last joint is in line at the welfare office. RIP to one of the best jobs that existed,2023-11-16,6,Joy,0.063809164,0.53207964,0.0029145742,0.37150997,0.025078474,0.004608139,POSITIVE,0.9541202187538147
-39,39,Comment,17wvwke,"“Giving up smoke”
+**Account Age**|2 weeks|[^scan ^comment ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_comment&message=Replace%20this%20text%20with%20a%20comment%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20comment%20and%20correct%20your%20first%20seen%20date.)|[^scan ^submission ](https://www.reddit.com/message/compose/?to=VisualMod&subject=scan_submission&message=Replace%20this%20text%20with%20a%20submission%20ID%20(which%20looks%20like%20h26cq3k\)%20to%20have%20the%20bot%20scan%20your%20submission%20and%20correct%20your%20first%20seen%20date.)",2023-11-16,1,Surprise,0.2963931,0.11160881,0.002655346,0.1480792,0.031545833,0.40971777,NEGATIVE,0.9952878952026367
+18,18,Comment,17wvwke,The dude who just rolled snoop's last joint is in line at the welfare office. RIP to one of the best jobs that existed,2023-11-16,1,Joy,0.063809365,0.53207976,0.002914575,0.37150973,0.02507842,0.0046081445,POSITIVE,0.9541201591491699
+19,19,Comment,17wvwke,"“Giving up smoke”
 
-Snoop will still probably be eating 2000mg of thc everyday.",2023-11-16,6,Anger,0.05385324,0.023216613,0.0008351889,0.8802475,0.041305184,0.00054232747,NEGATIVE,0.9779386520385742
+Snoop will still probably be eating 2000mg of thc everyday.",2023-11-16,1,Anger,0.053853244,0.0232166,0.00083518826,0.8802476,0.04130503,0.0005423273,NEGATIVE,0.9779386520385742
