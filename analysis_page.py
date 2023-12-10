@@ -167,33 +167,45 @@ def analysis_model_tab():
 
         # datum_preprocessed = classifier.preprocess_text(text)
         prediction, probs = classifier.predict_emotions(df['Text'].tolist())
-
         df['Sentiment'] = prediction
         emotion_columns = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
         df[emotion_columns] = probs
 
+        # Apply sentiment analysis
+        df['pos/neg'] = df['Text'].apply(lambda x: sentiment(x, max_length=512)[0]['label'])
+        df['pos/neg score'] = df['Text'].apply(lambda x: sentiment(x, max_length=512)[0]['score'])
 
-
-        # apply sentiment analysis
-        df['pos/neg'] = df['Text'].apply(lambda x: sentiment(x, max_length = 512)[0]['label'])
-        df['pos/neg score'] = df['Text'].apply(lambda x: sentiment(x, max_length = 512)[0]['score'])
-
+        # Compute average for each emotion for each interval
         average_emotions = df.groupby('Interval Number')[emotion_columns].mean()
-        average_pos_neg_score = df.groupby('Interval Number')[['POSITIVE','NEGATIVE']].mean()
-        combined_averages = pd.concat([average_emotions, average_pos_neg_score], axis=1)
+
+        # Separate DataFrames for positive and negative sentiments
+        df_positive = df[df['pos/neg'] == 'POSITIVE']
+        df_negative = df[df['pos/neg'] == 'NEGATIVE']
+
+        # Compute average 'pos/neg score' for positive and negative
+        average_pos_score = df_positive.groupby('Interval Number')['pos/neg score'].mean()
+        average_neg_score = df_negative.groupby('Interval Number')['pos/neg score'].mean()
+
+        # Combine the results into a single DataFrame
+        combined_averages = pd.concat([average_emotions, average_pos_score, average_neg_score], axis=1)
+        combined_averages.columns = emotion_columns + ['Average Positive Score', 'Average Negative Score']
+
+        # Save the DataFrame
+        combined_averages.to_csv('combined_averages.csv')
 
         st.write(combined_averages)
 
-        # plt.figure(figsize=(15, 10))
-        # for column in combined_averages.columns[1:]:  # Exclude the 'Interval Number' column
-        #     plt.plot(combined_averages['Interval Number'], combined_averages[column], marker='o', label=column)
-        #
-        # plt.title('Average Scores for Emotions and Pos/Neg Score Across Intervals')
-        # plt.xlabel('Interval Number')
-        # plt.ylabel('Average Score')
-        # plt.legend()
-        # plt.grid(True)
-        # plt.show()
+        fig, axes = plt.subplots(len(combined_averages.columns), 1, figsize=(10, 5 * len(combined_averages.columns)))
+
+        for i, column in enumerate(combined_averages.columns):
+            combined_averages[column].plot(ax=axes[i], marker='o', title=column)
+            axes[i].set_ylabel('Average Score')
+            axes[i].set_xlabel('Interval Number')
+
+        plt.tight_layout()
+
+        # Use Streamlit's pyplot function to display the figure
+        st.pyplot(fig)
 
 
         df.to_csv('output_sentiment.csv', index = True)
