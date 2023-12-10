@@ -113,7 +113,14 @@ def analysis_data_tabs():
                 st.write(f"First few rows the fetched data (out of {len(df)}):")
                 st.dataframe(df.head(), use_container_width=True)
                 df.to_csv('output.csv', index=True)
-
+                interval_counts = Counter(df['Interval Number'].to_list())
+                st.write(interval_counts)
+                plt.bar(interval_counts.keys(), interval_counts.values())
+                plt.xlabel('Interval Number')
+                plt.ylabel('Number of Entries')
+                plt.title('Number of Entries per Interval')
+                plt.show()
+                st.pyplot(plt)
             else:
                 st.write("No live data fetched")
                 
