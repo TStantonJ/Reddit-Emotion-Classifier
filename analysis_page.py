@@ -140,12 +140,6 @@ def analysis_model_tab():
         elif re.search(r'roberta', st.session_state.model, re.IGNORECASE) is not None:
             st.session_state.model_name = 'roberta'
 
-    # Allow for selection of model
-    analysis_selected_tokenizer = st.selectbox(
-        ("Select am tokenizer"), analysis_tokenizer_list, index=None)
-    st.session_state.tokenizer = analysis_selected_tokenizer
-    st.write([st.session_state.model, st.session_state.tokenizer])
-
     st.session_state.tokenizer = ''
 
     if st.button('Apply Model'):
