@@ -1,10 +1,12 @@
 import  streamlit as st
 import re
+import os
 import glob
 import pandas as pd
 from transformers import TFBertForSequenceClassification, BertTokenizer
-from suggestions import  train_model
+from suggestions import  train_model, evaluate_model
 from datacode import get_data_from_source, split_data, tokenize_tensorize_data
+from Model_ForGIT6_model_apply import EmotionClassifier
 
 def train_side_bar():
     with st.sidebar:
@@ -69,6 +71,7 @@ def train_data_tabs():
         data_raw = get_data_from_source(st.session_state.dataSource, st.session_state.sampleSize, st.session_state.choosenLabel,st.session_state.choosenText)
         # split data
         data_split = split_data(data_raw[1],data_raw[2],0.2)
+        st.session_state.data_split = data_split
         st.session_state.trainLabelData = data_split[2]
         st.session_state.testLabelData = data_split[3]
         # Tokenize
@@ -77,6 +80,7 @@ def train_data_tabs():
 
 def train_model_tab():
     st.session_state.modelHyperParams= {}
+    st.session_state.testModelHyperParams ={}
     st.session_state.modelHyperParams['staircase'] = True
 
     # Model tabs to either use preexisiting models or train new models
@@ -94,7 +98,21 @@ def train_model_tab():
         st.session_state.model = train_selected_model
         st.write(st.session_state.model)
 
-        
+        if st.button('train'):
+            # Transfer input data
+            st.session_state.testModelHyperParams['input_ids_test'] =  st.session_state.tokenizedData[1]
+            st.session_state.testModelHyperParams['attention_masks_test'] =  st.session_state.tokenizedData[3]
+            st.session_state.testModelHyperParams['labels_test'] =  st.session_state.testLabelData
+            st.session_state.testModelHyperParams['texts_test'] =  st.session_state.data_split[1]
+
+            cwd = os.getcwd()
+            classifier = EmotionClassifier(model_name='bert', 
+                                        model_path=cwd + '/content/models/' + st.session_state.model, 
+                                        tokenizer_path=''#cwd + '/content/models/' +  st.session_state.tokenizer
+                                        )
+            evaluate_model(classifier, **st.session_state.testModelHyperParams)
+
+
         
     # Train new model tab
     with modelTab2:
@@ -144,7 +162,7 @@ def train_model_tab():
         
         if st.button('train'):
             # lock in hyper params
-            t.session_state.modelHyperParams['new_model_name'] =  new_model_name
+            st.session_state.modelHyperParams['new_model_name'] =  new_model_name
             st.session_state.modelHyperParams['batch_size'] = batch_size_input
             st.session_state.modelHyperParams['initial_learning_rate'] = initial_learning_rate_input
             st.session_state.modelHyperParams['decay_steps'] = decay_steps_input
