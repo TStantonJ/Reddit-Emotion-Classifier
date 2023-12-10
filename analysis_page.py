@@ -74,10 +74,10 @@ def analysis_data_tabs():
         commentscolumn, postscolumn = st.columns(2)
         with commentscolumn:
             # button for num of comments
-            num_comments = st.number_input('Number of comments', min_value=1, max_value=100, value=3, step=1, format=None, key=None)
+            num_comments = st.number_input('Number of comments', min_value=1, max_value=1000, value=3, step=1, format=None, key=None)
         with postscolumn:
             # button for number of posts
-            num_posts = st.number_input('Number of posts', min_value=1, max_value=100, value=5, step=1, format=None, key=None)
+            num_posts = st.number_input('Number of posts', min_value=1, max_value=1000, value=5, step=1, format=None, key=None)
 
         # button for subreddit name
         subreddit_name = st.text_input('Subreddit name', value='wallstreetbets', max_chars=None, key=None, type='default')
