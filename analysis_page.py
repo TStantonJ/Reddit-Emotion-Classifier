@@ -227,6 +227,8 @@ def analysis_model_tab():
 
         # Display the plot in Streamlit
         st.pyplot(fig)
+
+
         attributes = ['Positive', 'Negative']
 
         # Plotting
@@ -289,6 +291,44 @@ def analysis_model_tab():
 
         # Display the plot in Streamlit
         st.pyplot(fig)
+
+        # ----------------------------------------------------------
+
+        # Plotting Emotions with Pos/Neg Difference
+        fig, ax1 = plt.subplots(figsize=(10, 5))
+
+        # Iterate over each emotion and plot it on the primary y-axis (ax1)
+        for emotion in emotion_columns:
+            combined_averages[emotion].plot(ax=ax1, marker='o', label=emotion)
+
+        # Setting primary y-axis labels and title
+        ax1.set_title('Emotion Scores vs Interval Number with Pos/Neg Difference')
+        ax1.set_ylabel('Average Emotion Score')
+        ax1.set_xlabel('Interval Number')
+
+        # Invert the x-axis and adjust the x-ticks for the primary y-axis
+        ax1.invert_xaxis()
+        ax1.set_xticks(combined_averages.index)
+        ax1.set_xticklabels(combined_averages.index[::-1])
+
+        # Creating a secondary y-axis for pos/neg difference
+        ax2 = ax1.twinx()
+
+        # Plotting pos/neg difference on the secondary y-axis (ax2)
+        pos_neg_diff_average.plot(ax=ax2, marker='s', color='green', label='Pos/Neg Difference', linestyle='--')
+
+        # Setting secondary y-axis labels
+        ax2.set_ylabel('Average Absolute Difference')
+
+        # Adding legends for both y-axes
+        ax1.legend(loc='upper left')
+        ax2.legend(loc='upper right')
+
+        plt.tight_layout()
+
+        # Display the plot in Streamlit
+        st.pyplot(fig)
+
 
 
 
