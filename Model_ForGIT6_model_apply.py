@@ -44,7 +44,7 @@ class EmotionClassifier:
         return text
 
     def predict_emotions(self, texts):
-        print(texts)
+        #print(texts)
         encoding = self.tokenizer(
             texts,
             padding=True,
@@ -60,8 +60,8 @@ class EmotionClassifier:
         emotions = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
 
         most_likely_emotions = [emotions[np.argmax(prob)] for prob in probabilities]
-
-        return most_likely_emotions, [max(prob) for prob in probabilities]
+        
+        return most_likely_emotions, probabilities
 
     def predict_emotion(self, text):
         # Tokenize the input text
