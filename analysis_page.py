@@ -170,7 +170,7 @@ def analysis_model_tab():
         df['Sentiment'] = prediction
         emotion_columns = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
         df[emotion_columns] = probs
-        emotion_columns.append(['Positive','Negative'])
+        emotion_columns.extend(['Positive','Negative'])
         # Apply sentiment analysis
         df['pos/neg'] = df['Text'].apply(lambda x: sentiment(x, max_length=512)[0]['label'])
         df['pos/neg score'] = df['Text'].apply(lambda x: sentiment(x, max_length=512)[0]['score'])
