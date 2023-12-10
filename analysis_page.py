@@ -240,7 +240,32 @@ def analysis_model_tab():
         # Display the plot in Streamlit
         st.pyplot(fig)
 
+        attributes = ['Average Positive Score', 'Average Negative Score']
 
+        # Plotting
+        fig, ax = plt.subplots(figsize=(10, 5))
+
+        # Iterate over each attribute and plot it on the same Axes
+        for attribute in attributes:
+            combined_averages[attribute].plot(ax=ax, marker='o', label=attribute)
+
+        # Adding title and labels
+        ax.set_title('Positive and Negative Scores vs Interval Number')
+        ax.set_ylabel('Average Score')
+        ax.set_xlabel('Interval Number')
+
+        # Invert the x-axis and adjust the x-ticks
+        ax.invert_xaxis()
+        ax.set_xticks(combined_averages.index)
+        ax.set_xticklabels(combined_averages.index[::-1])
+
+        # Adding legend to distinguish between Positive and Negative scores
+        ax.legend()
+
+        plt.tight_layout()
+
+        # Display the plot in Streamlit
+        st.pyplot(fig)
 
         # average_scores = df.groupby(['Interval Number', 'Sentiment'])['Score'].mean().reset_index()
         # st.write(average_scores)
