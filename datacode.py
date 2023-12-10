@@ -14,9 +14,11 @@ import numpy as np
 def get_data_from_source(data_source, sample_size, data_label, text_label):
     # load data
     df = data_source
+    df = df.dropna()
     #df.rename(columns={'label':'labels'}, inplace=True) # rename label to label_encoded
 
     # get subset of df for testing/debugging/development (CHANGE THIS IN THE FUTURE)
+    print(len(df))
     df = df.groupby(data_label).apply(lambda x: x.sample(n=sample_size)).reset_index(drop=True)
     df = df.sample(frac=1).reset_index(drop=True) # shuffle df
 

@@ -70,9 +70,11 @@ def evaluate_model(model, **kwargs):
     attention_masks_test = kwargs['attention_masks_test']
     labels_test = kwargs['labels_test']
     texts_test= kwargs['texts_test']
+    print(len(texts_test))
 
     # Model evaluation for scores
-    y_pred_logits = model.predict_emotions([input_ids_test, attention_masks_test]).logits
+    y_pred_logits = model.predict_emotions(texts_test.tolist())
+    #y_pred_logits = model.predict_emotions([input_ids_test, attention_masks_test]).logits
     y_pred_scores = tf.nn.softmax(y_pred_logits, axis=1).numpy()
     y_pred_labels = tf.argmax(y_pred_logits, axis=1).numpy()
 

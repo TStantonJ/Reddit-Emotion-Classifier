@@ -44,7 +44,7 @@ class EmotionClassifier:
         return text
 
     def predict_emotions(self, texts):
-
+        print(texts)
         encoding = self.tokenizer(
             texts,
             padding=True,
@@ -52,7 +52,7 @@ class EmotionClassifier:
             max_length=128,
             return_tensors='tf'
         )
-
+        
         logits = self.model.predict(
             {'input_ids': encoding['input_ids'], 'attention_mask': encoding['attention_mask']}).logits
         probabilities = tf.nn.softmax(logits, axis=1).numpy()
@@ -61,7 +61,7 @@ class EmotionClassifier:
 
         most_likely_emotions = [emotions[np.argmax(prob)] for prob in probabilities]
 
-        return most_likely_emotions, probabilities
+        return most_likely_emotions, [max(prob) for prob in probabilities]
 
     def predict_emotion(self, text):
         # Tokenize the input text

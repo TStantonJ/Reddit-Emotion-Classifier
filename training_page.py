@@ -24,28 +24,19 @@ def train_data_tabs():
     dataSource = pd.DataFrame()
     dataOption_selectbox = st.selectbox(
     'Select training data from available data sets',
-    ('Merged Reddit Data', 'Hugging Face Twitter Data', 'Reddit Source C'),
+    (['Hugging Face Twitter Data']),
     index=None,
     placeholder="Select data source...",)
 
-    if dataOption_selectbox == 'Merged Reddit Data':
-        dataSource = pd.read_csv('preloadedData/merged_reddit_data.csv')
-        st.session_state.dataSource = dataSource
-        st.session_state.labels = [i for i in dataSource.columns]
-        st.session_state.text = [i for i in dataSource.columns]
-        st.session_state.sampleSizeMax = len(dataSource)
-        st.session_state.butTokenizeDsabled = False
-    elif dataOption_selectbox == 'Hugging Face Twitter Data':
+    if dataOption_selectbox == 'Hugging Face Twitter Data':
         dataSource = pd.read_json('hug_data.jsonl', lines=True)
         st.session_state.labels = [i for i in dataSource.columns]
         st.session_state.text = [i for i in dataSource.columns]
         st.session_state.dataSource = dataSource
         st.session_state.labels = [i for i in dataSource.columns]
         st.session_state.text = [i for i in dataSource.columns]
-        st.session_state.sampleSizeMax = len(dataSource)
+        st.session_state.sampleSize = 14959
         st.session_state.butTokenizeDsabled = False
-    elif dataOption_selectbox == 'Reddit Source C':
-        pass
     
     labelColumn, textColumn = st.columns(2)
     with textColumn:
@@ -58,9 +49,6 @@ def train_data_tabs():
             ("Select a column as label"), st.session_state.labels, index=None)
         st.session_state.choosenLabel = train_label_selection
     
-    train_sampleSize_selection =  st.number_input("Select amount of text you want to train on"
-                                                ,max_value=st.session_state.sampleSizeMax)
-    st.session_state.sampleSize = train_sampleSize_selection
     
     # Display data
     st.dataframe(dataSource, use_container_width=True)
@@ -86,7 +74,7 @@ def train_model_tab():
     # Model tabs to either use preexisiting models or train new models
     modelTab1, modelTab2= st.tabs(["Test already trained models", " Train New Model",])
 
-    # Use exisitng model tab
+    # Test exisitng model tab
     with modelTab1:
         # Find current seletion of models
         train_model_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('model', x)])
@@ -98,7 +86,7 @@ def train_model_tab():
         st.session_state.model = train_selected_model
         st.write(st.session_state.model)
 
-        if st.button('train'):
+        if st.button('Test'):
             # Transfer input data
             st.session_state.testModelHyperParams['input_ids_test'] =  st.session_state.tokenizedData[1]
             st.session_state.testModelHyperParams['attention_masks_test'] =  st.session_state.tokenizedData[3]
@@ -110,7 +98,7 @@ def train_model_tab():
                                         model_path=cwd + '/content/models/' + st.session_state.model, 
                                         tokenizer_path=''#cwd + '/content/models/' +  st.session_state.tokenizer
                                         )
-            evaluate_model(classifier, **st.session_state.testModelHyperParams)
+            st.write(evaluate_model(classifier, **st.session_state.testModelHyperParams))
 
 
         
@@ -136,7 +124,7 @@ def train_model_tab():
             
             new_model_name =st.text_input(
                 "Select an name for your model",
-                "unamed",
+                "unnamed",
             )
             batch_size_input =st.text_input(
                 "Select a batchsize",
