@@ -140,12 +140,6 @@ def analysis_model_tab():
         elif re.search(r'roberta', st.session_state.model, re.IGNORECASE) is not None:
             st.session_state.model_name = 'roberta'
 
-    # Allow for selection of model
-    analysis_selected_tokenizer = st.selectbox(
-        ("Select am tokenizer"), analysis_tokenizer_list, index=None)
-    st.session_state.tokenizer = analysis_selected_tokenizer
-    st.write([st.session_state.model, st.session_state.tokenizer])
-
     st.session_state.tokenizer = ''
 
     if st.button('Apply Model'):
@@ -179,16 +173,20 @@ def analysis_model_tab():
             lambda x: x['pos/neg score'] if x['pos/neg'] == 'POSITIVE' else 1 - x['pos/neg score'], axis=1)
         df['Negative'] = df.apply(
             lambda x: x['pos/neg score'] if x['pos/neg'] == 'NEGATIVE' else 1 - x['pos/neg score'], axis=1)
+        
+        # absolute value of difference between positive and negative scores
+        df['pos/neg difference'] = abs(df['Positive'] - df['Negative'])
 
         # Compute average for each emotion for each interval
         combined_averages = df.groupby('Interval Number')[emotion_columns].mean()
 
         # Save the DataFrame
         combined_averages.to_csv('combined_averages.csv')
-
         st.write(combined_averages)
 
+        # Plotting
         fig, axes = plt.subplots(len(combined_averages.columns), 1, figsize=(10, 5 * len(combined_averages.columns)))
+        #axes2 = axes.twinx()
 
         for i, column in enumerate(combined_averages.columns):
             combined_averages[column].plot(ax=axes[i], marker='o', title=column)
@@ -200,12 +198,10 @@ def analysis_model_tab():
             axes[i].set_xticks(combined_averages.index)
             axes[i].set_xticklabels(combined_averages.index[::-1])
 
-
         plt.tight_layout()
 
         # Use Streamlit's pyplot function to display the figure
         st.pyplot(fig)
-
         emotion_columns = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
 
         # Plotting
@@ -227,12 +223,10 @@ def analysis_model_tab():
 
         # Adding legend to distinguish different emotions
         ax.legend()
-
         plt.tight_layout()
 
         # Display the plot in Streamlit
         st.pyplot(fig)
-
         attributes = ['Positive', 'Negative']
 
         # Plotting
@@ -254,7 +248,6 @@ def analysis_model_tab():
 
         # Adding legend to distinguish between Positive and Negative scores
         ax.legend()
-
         plt.tight_layout()
 
         # Display the plot in Streamlit
@@ -262,6 +255,40 @@ def analysis_model_tab():
 
         # average_scores = df.groupby(['Interval Number', 'Sentiment'])['Score'].mean().reset_index()
         # st.write(average_scores)
+        # ----------------------------------------------------------------------
+        # Plotting with dual y-axis
+        fig, ax1 = plt.subplots(figsize=(10, 5))
+        pos_neg_diff_average = df.groupby('Interval Number')['pos/neg difference'].mean()
+
+        # Plotting Positive and Negative scores on the primary y-axis (ax1)
+        for attribute in attributes:
+            combined_averages[attribute].plot(ax=ax1, marker='o', label=attribute)
+
+        # Adding title, labels, and legend for the primary y-axis
+        ax1.set_title('Positive and Negative Scores vs Interval Number with Pos/Neg Difference')
+        ax1.set_ylabel('Average Score (considering proportion)')
+        ax1.set_xlabel('Interval Number')
+        ax1.legend(loc='upper left')
+
+        # Invert the x-axis and adjust the x-ticks for the primary y-axis
+        ax1.invert_xaxis()
+        ax1.set_xticks(combined_averages.index)
+        ax1.set_xticklabels(combined_averages.index[::-1])
+
+        # Creating a secondary y-axis for pos/neg difference
+        ax2 = ax1.twinx()
+
+        # Plotting pos/neg difference on the secondary y-axis (ax2)
+        pos_neg_diff_average.plot(ax=ax2, marker='s', color='green', label='Pos/Neg Difference', linestyle='--')
+
+        # Adding labels and legend for the secondary y-axis
+        ax2.set_ylabel('Average Absolute Difference')
+        ax2.legend(loc='upper right')
+
+        plt.tight_layout()
+
+        # Display the plot in Streamlit
+        st.pyplot(fig)
 
 
 
