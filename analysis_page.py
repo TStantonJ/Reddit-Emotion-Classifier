@@ -213,9 +213,32 @@ def analysis_model_tab():
         # Use Streamlit's pyplot function to display the figure
         st.pyplot(fig)
 
+        emotion_columns = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
 
-        df.to_csv('output_sentiment.csv', index = True)
-        st.write(df)
+        # Plotting
+        fig, ax = plt.subplots(figsize=(10, 5))
+
+        # Iterate over each emotion and plot it on the same Axes
+        for emotion in emotion_columns:
+            combined_averages[emotion].plot(ax=ax, marker='o', label=emotion)
+
+        # Adding title and labels
+        ax.set_title('Emotion Scores vs Interval Number')
+        ax.set_ylabel('Average Emotion Score')
+        ax.set_xlabel('Interval Number')
+
+        # Invert the x-axis and adjust the x-ticks
+        ax.invert_xaxis()
+        ax.set_xticks(combined_averages.index)
+        ax.set_xticklabels(combined_averages.index[::-1])
+
+        # Adding legend to distinguish different emotions
+        ax.legend()
+
+        plt.tight_layout()
+
+        # Display the plot in Streamlit
+        st.pyplot(fig)
 
 
 
