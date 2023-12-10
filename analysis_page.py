@@ -175,35 +175,34 @@ def analysis_model_tab():
             lambda x: x['pos/neg score'] if x['pos/neg'] == 'NEGATIVE' else 1 - x['pos/neg score'], axis=1)
         
 
-
         # Compute average for each emotion for each interval
         combined_averages = df.groupby('Interval Number')[emotion_columns].mean()
 
         # absolute value of difference between positive and negative scores
-        df['pos/neg difference'] = abs(combined_averages['Positive'] - combined_averages['Negative'])
+        # df['pos/neg difference'] = abs(combined_averages['Positive'] - combined_averages['Negative'])
         # Save the DataFrame
         combined_averages.to_csv('combined_averages.csv')
 
         st.write(combined_averages)
 
         # Plotting
-        fig, axes = plt.subplots(len(combined_averages.columns), 1, figsize=(10, 5 * len(combined_averages.columns)))
+        # fig, axes = plt.subplots(len(combined_averages.columns), 1, figsize=(10, 5 * len(combined_averages.columns)))
         #axes2 = axes.twinx()
-
-        for i, column in enumerate(combined_averages.columns):
-            combined_averages[column].plot(ax=axes[i], marker='o', title=column)
-            axes[i].set_ylabel('Average Score')
-            axes[i].set_xlabel('Interval Number')
-            axes[i].invert_xaxis()
-            
-            # change the x-axis ticks to be the inverse of the interval number
-            axes[i].set_xticks(combined_averages.index)
-            axes[i].set_xticklabels(combined_averages.index[::-1])
-
-        plt.tight_layout()
+        #
+        # for i, column in enumerate(combined_averages.columns):
+        #     combined_averages[column].plot(ax=axes[i], marker='o', title=column)
+        #     axes[i].set_ylabel('Average Score')
+        #     axes[i].set_xlabel('Interval Number')
+        #     axes[i].invert_xaxis()
+        #
+        #     # change the x-axis ticks to be the inverse of the interval number
+        #     axes[i].set_xticks(combined_averages.index)
+        #     axes[i].set_xticklabels(combined_averages.index[::-1])
+        #
+        # plt.tight_layout()
 
         # Use Streamlit's pyplot function to display the figure
-        st.pyplot(fig)
+        # st.pyplot(fig)
         emotion_columns = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
 
         # Plotting
@@ -261,76 +260,76 @@ def analysis_model_tab():
         # st.write(average_scores)
         # ----------------------------------------------------------------------
         # Plotting with dual y-axis
-        fig, ax1 = plt.subplots(figsize=(10, 5))
-        pos_neg_diff_average = df.groupby('Interval Number')['pos/neg difference'].mean()
-
-        # Plotting Positive and Negative scores on the primary y-axis (ax1)
-        for attribute in attributes:
-            combined_averages[attribute].plot(ax=ax1, marker='o', label=attribute)
-
-        # Adding title, labels, and legend for the primary y-axis
-        ax1.set_title('Positive and Negative Scores vs Interval Number with Pos/Neg Difference')
-        ax1.set_ylabel('Average Score (considering proportion)')
-        ax1.set_xlabel('Interval Number')
-        ax1.legend(loc='upper left')
-
-        # Invert the x-axis and adjust the x-ticks for the primary y-axis
-        ax1.invert_xaxis()
-        ax1.set_xticks(combined_averages.index)
-        ax1.set_xticklabels(combined_averages.index[::-1])
-
-        # Creating a secondary y-axis for pos/neg difference
-        ax2 = ax1.twinx()
-
-        # Plotting pos/neg difference on the secondary y-axis (ax2)
-        pos_neg_diff_average.plot(ax=ax2, marker='s', color='green', label='Pos/Neg Difference', linestyle='--')
-
-        # Adding labels and legend for the secondary y-axis
-        ax2.set_ylabel('Average Absolute Difference')
-        ax2.legend(loc='upper right')
-
-        plt.tight_layout()
-
-        # Display the plot in Streamlit
-        st.pyplot(fig)
+        # fig, ax1 = plt.subplots(figsize=(10, 5))
+        # pos_neg_diff_average = df.groupby('Interval Number')['pos/neg difference'].mean()
+        #
+        # # Plotting Positive and Negative scores on the primary y-axis (ax1)
+        # for attribute in attributes:
+        #     combined_averages[attribute].plot(ax=ax1, marker='o', label=attribute)
+        #
+        # # Adding title, labels, and legend for the primary y-axis
+        # ax1.set_title('Positive and Negative Scores vs Interval Number with Pos/Neg Difference')
+        # ax1.set_ylabel('Average Score (considering proportion)')
+        # ax1.set_xlabel('Interval Number')
+        # ax1.legend(loc='upper left')
+        #
+        # # Invert the x-axis and adjust the x-ticks for the primary y-axis
+        # ax1.invert_xaxis()
+        # ax1.set_xticks(combined_averages.index)
+        # ax1.set_xticklabels(combined_averages.index[::-1])
+        #
+        # # Creating a secondary y-axis for pos/neg difference
+        # ax2 = ax1.twinx()
+        #
+        # # Plotting pos/neg difference on the secondary y-axis (ax2)
+        # pos_neg_diff_average.plot(ax=ax2, marker='s', color='green', label='Pos/Neg Difference', linestyle='--')
+        #
+        # # Adding labels and legend for the secondary y-axis
+        # ax2.set_ylabel('Average Absolute Difference')
+        # ax2.legend(loc='upper right')
+        #
+        # plt.tight_layout()
+        #
+        # # Display the plot in Streamlit
+        # st.pyplot(fig)
 
         # ----------------------------------------------------------
 
         # Plotting Emotions with Pos/Neg Difference
-        fig, ax1 = plt.subplots(figsize=(10, 5))
-
-        # Iterate over each emotion and plot it on the primary y-axis (ax1)
-        for emotion in emotion_columns:
-            combined_averages[emotion].plot(ax=ax1, marker='o', label=emotion)
-
-        # Setting primary y-axis labels and title
-        ax1.set_title('Emotion Scores vs Interval Number with Pos/Neg Difference')
-        ax1.set_ylabel('Average Emotion Score')
-        ax1.set_xlabel('Interval Number')
-
-        # Invert the x-axis and adjust the x-ticks for the primary y-axis
-        ax1.invert_xaxis()
-        ax1.set_xticks(combined_averages.index)
-        ax1.set_xticklabels(combined_averages.index[::-1])
-
-        # Creating a secondary y-axis for pos/neg difference
-        ax2 = ax1.twinx()
-
-        # Plotting pos/neg difference on the secondary y-axis (ax2)
-        pos_neg_diff_average.plot(ax=ax2, marker='s', color='green', label='Pos/Neg Difference', linestyle='--')
-
-        # Setting secondary y-axis labels
-        ax2.set_ylabel('Average Absolute Difference')
-
-        # Adding legends for both y-axes
-        ax1.legend(loc='upper left')
-        ax2.legend(loc='upper right')
-
-        plt.tight_layout()
-
-        # Display the plot in Streamlit
-        st.pyplot(fig)
-
+        # fig, ax1 = plt.subplots(figsize=(10, 5))
+        #
+        # # Iterate over each emotion and plot it on the primary y-axis (ax1)
+        # for emotion in emotion_columns:
+        #     combined_averages[emotion].plot(ax=ax1, marker='o', label=emotion)
+        #
+        # # Setting primary y-axis labels and title
+        # ax1.set_title('Emotion Scores vs Interval Number with Pos/Neg Difference')
+        # ax1.set_ylabel('Average Emotion Score')
+        # ax1.set_xlabel('Interval Number')
+        #
+        # # Invert the x-axis and adjust the x-ticks for the primary y-axis
+        # ax1.invert_xaxis()
+        # ax1.set_xticks(combined_averages.index)
+        # ax1.set_xticklabels(combined_averages.index[::-1])
+        #
+        # # Creating a secondary y-axis for pos/neg difference
+        # ax2 = ax1.twinx()
+        #
+        # # Plotting pos/neg difference on the secondary y-axis (ax2)
+        # pos_neg_diff_average.plot(ax=ax2, marker='s', color='green', label='Pos/Neg Difference', linestyle='--')
+        #
+        # # Setting secondary y-axis labels
+        # ax2.set_ylabel('Average Absolute Difference')
+        #
+        # # Adding legends for both y-axes
+        # ax1.legend(loc='upper left')
+        # ax2.legend(loc='upper right')
+        #
+        # plt.tight_layout()
+        #
+        # # Display the plot in Streamlit
+        # st.pyplot(fig)
+        #
 
 
 
@@ -373,6 +372,13 @@ def reddit_scraper(client_id, client_secret, user_agent, num_posts, subreddit_na
                     'Text': post.title + post.selftext,
                     'Creation Date': datetime.utcfromtimestamp(post.created_utc).strftime('%Y-%m-%d'),
                     'Interval Number': interval_num})
+
+            interval_counts = Counter([entry['Interval Number'] for entry in data])
+            plt.bar(interval_counts.keys(), interval_counts.values())
+            plt.xlabel('Interval Number')
+            plt.ylabel('Number of Entries')
+            plt.title('Number of Entries per Interval')
+            plt.show()
 
             return data, posts_list
 
