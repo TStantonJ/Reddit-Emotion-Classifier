@@ -201,6 +201,12 @@ def analysis_model_tab():
             combined_averages[column].plot(ax=axes[i], marker='o', title=column)
             axes[i].set_ylabel('Average Score')
             axes[i].set_xlabel('Interval Number')
+            axes[i].invert_xaxis()
+            
+            # change the x-axis ticks to be the inverse of the interval number
+            axes[i].set_xticks(combined_averages.index)
+            axes[i].set_xticklabels(combined_averages.index[::-1])
+
 
         plt.tight_layout()
 
