@@ -174,14 +174,16 @@ def analysis_model_tab():
         df['Negative'] = df.apply(
             lambda x: x['pos/neg score'] if x['pos/neg'] == 'NEGATIVE' else 1 - x['pos/neg score'], axis=1)
         
-        # absolute value of difference between positive and negative scores
-        df['pos/neg difference'] = abs(df['Positive'] - df['Negative'])
+
 
         # Compute average for each emotion for each interval
         combined_averages = df.groupby('Interval Number')[emotion_columns].mean()
 
+        # absolute value of difference between positive and negative scores
+        df['pos/neg difference'] = abs(combined_averages['Positive'] - combined_averages['Negative'])
         # Save the DataFrame
         combined_averages.to_csv('combined_averages.csv')
+
         st.write(combined_averages)
 
         # Plotting
