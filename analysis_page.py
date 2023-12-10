@@ -19,6 +19,8 @@ import numpy as np
 import os
 from collections import Counter
 
+import matplotlib.pyplot as plt
+
 def preprocess_text(self, text):
     # Ensure text is not None
     #if text is None:
@@ -166,17 +168,100 @@ def analysis_model_tab():
         # datum_preprocessed = classifier.preprocess_text(text)
         prediction, probs = classifier.predict_emotions(df['Text'].tolist())
         df['Sentiment'] = prediction
-        df['Score'] = probs
+        emotion_columns = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
+        df[emotion_columns] = probs
+        emotion_columns.append(['Positive','Negative'])
+        # Apply sentiment analysis
+        df['pos/neg'] = df['Text'].apply(lambda x: sentiment(x, max_length=512)[0]['label'])
+        df['pos/neg score'] = df['Text'].apply(lambda x: sentiment(x, max_length=512)[0]['score'])
 
-        # apply sentiment analysis
-        df['pos/neg'] = df['Text'].apply(lambda x: sentiment(x)[0]['label'])
-        df['pos/neg score'] = df['Text'].apply(lambda x: sentiment(x)[0]['score'])
-        
-        df.to_csv('output_sentiment.csv', index = True)
-        st.write(df)
+        df['Positive'] = df.apply(
+            lambda x: x['pos/neg score'] if x['pos/neg'] == 'POSITIVE' else 1 - x['pos/neg score'], axis=1)
+        df['Negative'] = df.apply(
+            lambda x: x['pos/neg score'] if x['pos/neg'] == 'NEGATIVE' else 1 - x['pos/neg score'], axis=1)
 
-        average_scores = df.groupby(['Interval Number', 'Sentiment'])['Score'].mean().reset_index()
-        st.write(average_scores)
+        # Compute average for each emotion for each interval
+        combined_averages = df.groupby('Interval Number')[emotion_columns].mean()
+
+        # Save the DataFrame
+        combined_averages.to_csv('combined_averages.csv')
+
+        st.write(combined_averages)
+
+        fig, axes = plt.subplots(len(combined_averages.columns), 1, figsize=(10, 5 * len(combined_averages.columns)))
+
+        for i, column in enumerate(combined_averages.columns):
+            combined_averages[column].plot(ax=axes[i], marker='o', title=column)
+            axes[i].set_ylabel('Average Score')
+            axes[i].set_xlabel('Interval Number')
+            axes[i].invert_xaxis()
+            
+            # change the x-axis ticks to be the inverse of the interval number
+            axes[i].set_xticks(combined_averages.index)
+            axes[i].set_xticklabels(combined_averages.index[::-1])
+
+
+        plt.tight_layout()
+
+        # Use Streamlit's pyplot function to display the figure
+        st.pyplot(fig)
+
+        emotion_columns = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
+
+        # Plotting
+        fig, ax = plt.subplots(figsize=(10, 5))
+
+        # Iterate over each emotion and plot it on the same Axes
+        for emotion in emotion_columns:
+            combined_averages[emotion].plot(ax=ax, marker='o', label=emotion)
+
+        # Adding title and labels
+        ax.set_title('Emotion Scores vs Interval Number')
+        ax.set_ylabel('Average Emotion Score')
+        ax.set_xlabel('Interval Number')
+
+        # Invert the x-axis and adjust the x-ticks
+        ax.invert_xaxis()
+        ax.set_xticks(combined_averages.index)
+        ax.set_xticklabels(combined_averages.index[::-1])
+
+        # Adding legend to distinguish different emotions
+        ax.legend()
+
+        plt.tight_layout()
+
+        # Display the plot in Streamlit
+        st.pyplot(fig)
+
+        attributes = ['Positive', 'Negative']
+
+        # Plotting
+        fig, ax = plt.subplots(figsize=(10, 5))
+
+        # Iterate over each attribute and plot it on the same Axes
+        for attribute in attributes:
+            combined_averages[attribute].plot(ax=ax, marker='o', label=attribute)
+
+        # Adding title and labels
+        ax.set_title('Positive and Negative Scores vs Interval Number')
+        ax.set_ylabel('Average Score (considering proportion)')
+        ax.set_xlabel('Interval Number')
+
+        # Invert the x-axis and adjust the x-ticks
+        ax.invert_xaxis()
+        ax.set_xticks(combined_averages.index)
+        ax.set_xticklabels(combined_averages.index[::-1])
+
+        # Adding legend to distinguish between Positive and Negative scores
+        ax.legend()
+
+        plt.tight_layout()
+
+        # Display the plot in Streamlit
+        st.pyplot(fig)
+
+        # average_scores = df.groupby(['Interval Number', 'Sentiment'])['Score'].mean().reset_index()
+        # st.write(average_scores)
 
 
 

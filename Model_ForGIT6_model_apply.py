@@ -61,7 +61,7 @@ class EmotionClassifier:
 
         most_likely_emotions = [emotions[np.argmax(prob)] for prob in probabilities]
 
-        return most_likely_emotions, [max(prob) for prob in probabilities]
+        return most_likely_emotions, probabilities
 
     def predict_emotion(self, text):
         # Tokenize the input text
