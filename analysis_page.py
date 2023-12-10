@@ -19,6 +19,8 @@ import numpy as np
 import os
 from collections import Counter
 
+import matplotlib.pyplot as plt
+
 def preprocess_text(self, text):
     # Ensure text is not None
     #if text is None:
@@ -165,18 +167,42 @@ def analysis_model_tab():
 
         # datum_preprocessed = classifier.preprocess_text(text)
         prediction, probs = classifier.predict_emotions(df['Text'].tolist())
+
         df['Sentiment'] = prediction
-        df['Score'] = probs
+        emotion_columns = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
+        df[emotion_columns] = probs
+
+
 
         # apply sentiment analysis
-        df['pos/neg'] = df['Text'].apply(lambda x: sentiment(x)[0]['label'])
-        df['pos/neg score'] = df['Text'].apply(lambda x: sentiment(x)[0]['score'])
-        
+        df['pos/neg'] = df['Text'].apply(lambda x: sentiment(x, max_length = 512)[0]['label'])
+        df['pos/neg score'] = df['Text'].apply(lambda x: sentiment(x, max_length = 512)[0]['score'])
+
+        average_emotions = df.groupby('Interval Number')[emotion_columns].mean()
+        average_pos_neg_score = df.groupby('Interval Number')[['POSITIVE','NEGATIVE']].mean()
+        combined_averages = pd.concat([average_emotions, average_pos_neg_score], axis=1)
+
+        st.write(combined_averages)
+
+        # plt.figure(figsize=(15, 10))
+        # for column in combined_averages.columns[1:]:  # Exclude the 'Interval Number' column
+        #     plt.plot(combined_averages['Interval Number'], combined_averages[column], marker='o', label=column)
+        #
+        # plt.title('Average Scores for Emotions and Pos/Neg Score Across Intervals')
+        # plt.xlabel('Interval Number')
+        # plt.ylabel('Average Score')
+        # plt.legend()
+        # plt.grid(True)
+        # plt.show()
+
+
         df.to_csv('output_sentiment.csv', index = True)
         st.write(df)
 
-        average_scores = df.groupby(['Interval Number', 'Sentiment'])['Score'].mean().reset_index()
-        st.write(average_scores)
+
+
+        # average_scores = df.groupby(['Interval Number', 'Sentiment'])['Score'].mean().reset_index()
+        # st.write(average_scores)
 
 
 
