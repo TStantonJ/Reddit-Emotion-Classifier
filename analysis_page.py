@@ -170,25 +170,18 @@ def analysis_model_tab():
         df['Sentiment'] = prediction
         emotion_columns = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
         df[emotion_columns] = probs
-
+        emotion_columns.append(['Positive','Negative'])
         # Apply sentiment analysis
         df['pos/neg'] = df['Text'].apply(lambda x: sentiment(x, max_length=512)[0]['label'])
         df['pos/neg score'] = df['Text'].apply(lambda x: sentiment(x, max_length=512)[0]['score'])
 
+        df['Positive'] = df.apply(
+            lambda x: x['pos/neg score'] if x['pos/neg'] == 'POSITIVE' else 1 - x['pos/neg score'], axis=1)
+        df['Negative'] = df.apply(
+            lambda x: x['pos/neg score'] if x['pos/neg'] == 'NEGATIVE' else 1 - x['pos/neg score'], axis=1)
+
         # Compute average for each emotion for each interval
-        average_emotions = df.groupby('Interval Number')[emotion_columns].mean()
-
-        # Separate DataFrames for positive and negative sentiments
-        df_positive = df[df['pos/neg'] == 'POSITIVE']
-        df_negative = df[df['pos/neg'] == 'NEGATIVE']
-
-        # Compute average 'pos/neg score' for positive and negative
-        average_pos_score = df_positive.groupby('Interval Number')['pos/neg score'].mean()
-        average_neg_score = df_negative.groupby('Interval Number')['pos/neg score'].mean()
-
-        # Combine the results into a single DataFrame
-        combined_averages = pd.concat([average_emotions, average_pos_score, average_neg_score], axis=1)
-        combined_averages.columns = emotion_columns + ['Average Positive Score', 'Average Negative Score']
+        combined_averages = df.groupby('Interval Number')[emotion_columns].mean()
 
         # Save the DataFrame
         combined_averages.to_csv('combined_averages.csv')
@@ -240,7 +233,7 @@ def analysis_model_tab():
         # Display the plot in Streamlit
         st.pyplot(fig)
 
-        attributes = ['Average Positive Score', 'Average Negative Score']
+        attributes = ['Positive', 'Negative']
 
         # Plotting
         fig, ax = plt.subplots(figsize=(10, 5))
@@ -251,7 +244,7 @@ def analysis_model_tab():
 
         # Adding title and labels
         ax.set_title('Positive and Negative Scores vs Interval Number')
-        ax.set_ylabel('Average Score')
+        ax.set_ylabel('Average Score (considering proportion)')
         ax.set_xlabel('Interval Number')
 
         # Invert the x-axis and adjust the x-ticks
