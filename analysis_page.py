@@ -140,12 +140,12 @@ def analysis_model_tab():
         ("Select am Model"), analysis_model_list, index=None)
     st.session_state.model = analysis_selected_model
     if analysis_selected_model:
-        if re.search(r'bert', st.session_state.model, re.IGNORECASE) is not None:
-            st.session_state.model_name = 'bert'
+        if re.search(r'roberta', st.session_state.model, re.IGNORECASE) is not None:
+            st.session_state.model_name = 'roberta'
         elif re.search(r'electra', st.session_state.model, re.IGNORECASE) is not None:
             st.session_state.model_name = 'electra'
-        elif re.search(r'roberta', st.session_state.model, re.IGNORECASE) is not None:
-            st.session_state.model_name = 'roberta'
+        elif re.search(r'bert', st.session_state.model, re.IGNORECASE) is not None:
+            st.session_state.model_name = 'bert'
 
     st.session_state.tokenizer = ''
 
