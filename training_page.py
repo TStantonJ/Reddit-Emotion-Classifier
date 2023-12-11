@@ -3,9 +3,7 @@ import re
 import glob
 import pandas as pd
 import streamlit as st
-from Model_ForGIT6_model_apply import *
-from Model_ForGIT6_model_retrain import preprocess_text
-from suggestions import  train_model
+from model_functions import *
 
 
 def train_data_tabs():

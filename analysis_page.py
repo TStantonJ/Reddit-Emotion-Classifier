@@ -1,29 +1,13 @@
-import praw
 import re
 import glob
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
 import streamlit as st
-
 from collections import Counter
 from transformers import pipeline
-from Model_ForGIT6_model_apply import*
+from model_functions import *
 from reddit_scraper import reddit_scraper
-
-def preprocess_text(self, text):
-    
-    text = re.sub(r'http\S+', '', text)
-    text = re.sub(r'[^a-zA-Z0-9.,;:!?\'\"-]', ' ', text)
-    text = text.lower()
-    text = ' '.join([word for word in text.split() if word not in stopwords.words('english')])
-    text = re.sub(' +', ' ', text)
-
-    # Lemmatize
-    doc = nlp(text)
-    text = ' '.join([lemmatizer.lemmatize(token.text) for token in doc])
-
-    return text
 
 def analysis_data_tabs():
     """
@@ -158,7 +142,6 @@ def analysis_model_tab():
         df = pd.read_csv('output.csv')
         sent_scores = []
 
-        # datum_preprocessed = classifier.preprocess_text(text)
         prediction, probs = classifier.predict_emotions(df['Text'].tolist())
         df['Sentiment'] = prediction
         emotion_columns = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']

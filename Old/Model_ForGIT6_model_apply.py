@@ -87,12 +87,6 @@ class EmotionClassifier:
 
         return emotion_probs
 
-
-# define directory and load previously trained model
-#cur_dir = '/home/ubuntu/NLP/Project_test/data_model'
-#os.chdir(cur_dir)
-
-
 # Example usage
 if __name__ == "__main__":
     # Paths to the saved model and tokenizer
@@ -108,7 +102,3 @@ if __name__ == "__main__":
     text = classifier.preprocess_text(text)
     prediction = classifier.predict_emotion(text)
     print("Predicted Emotion Probabilities:", prediction)
-
-
-#cur_dir = '/home/ubuntu/NLP/Project_test'
-#os.chdir(cur_dir)
