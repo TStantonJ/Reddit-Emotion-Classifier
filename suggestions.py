@@ -1,6 +1,5 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MultiLabelBinarizer
 from transformers import TFBertForSequenceClassification, BertTokenizer
 from keras.optimizers import Adam
 from sklearn.metrics import classification_report
@@ -10,16 +9,111 @@ import os
 import re
 from nltk.corpus import stopwords
 import numpy as np
+import nltk
+import spacy
+from nltk.stem import WordNetLemmatizer
+
+# Load spacy model and stopwords
+nlp = spacy.load("en_core_web_sm")
+nltk.download('stopwords')
+nltk.download('wordnet')
+
+# Initialize lemmatizer
+lemmatizer = WordNetLemmatizer()
 
 
 # Rename this to format data!
+# Plus, import or define tokenize_data and conv_to_tensor
+def get_data(sample_size):
+    # load data
+    df = pd.read_json('hug_data.jsonl', lines=True)
+    df.rename(columns={'label':'labels'}, inplace=True) # rename label to label_encoded
+
+    # get subset of df for testing/debugging/development (CHANGE THIS IN THE FUTURE)
+    df = df.groupby('labels').apply(lambda x: x.sample(n=sample_size)).reset_index(drop=True)
+    df = df.sample(frac=1).reset_index(drop=True) # shuffle df
+
+    texts = df['text'].values
+    labels = df['labels'].values
+
+    return df, texts, labels
+
+
+# Preprocess text function
+def preprocess_text(text):
+    
+    # Remove links
+    text = re.sub(r'http\S+', '', text)
+
+    # Remove non-alphanumeric and non puncuation characters
+    text = re.sub(r'[^a-zA-Z0-9.,;:!?\'\"-]', ' ', text)
+
+    # Lowercase
+    text = text.lower()
+
+    # Remove stopwords
+    text = ' '.join([word for word in text.split() if word not in stopwords.words('english')])
+
+    # Remove extra spaces
+    #text = re.sub(' +', ' ', text)
+
+    # Lemmatize
+    doc = nlp(text)
+    text = ' '.join([lemmatizer.lemmatize(token.text) for token in doc])
+
+    return text
+
+def tokenize_data(texts_train, texts_test):
+    # load pretrained tokenizer
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    #tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
+
+    # Tokenize
+    input_ids_train = []
+    input_ids_test = []
+    attention_masks_train = []
+    attention_masks_test = []
+
+    for text in texts_train:
+        # Tokenize train
+        encoded_dict = tokenizer.encode_plus(text, # input texts                     
+                            add_special_tokens = True, # add [CLS] at the start, [SEP] at the end
+                            max_length = 128, # if input text is longer, then it gets truncated
+                            padding = 'max_length', # if input text is shorter, then it gets padded to 128
+                            return_attention_mask = True,   
+                            return_tensors = 'tf',
+                            truncation=True)
+
+        input_ids_train.append(encoded_dict['input_ids'][0]) 
+        attention_masks_train.append(encoded_dict['attention_mask'][0])
+
+    for text in texts_test:
+        # Tokenize test
+        encoded_dict = tokenizer.encode_plus(text,                      
+                            add_special_tokens = True,
+                            max_length = 128,           
+                            padding = 'max_length',
+                            return_attention_mask = True,   
+                            return_tensors = 'tf',
+                            truncation=True)  
+
+        input_ids_test.append(encoded_dict['input_ids'][0])
+        attention_masks_test.append(encoded_dict['attention_mask'][0])
+
+    return input_ids_train, input_ids_test, attention_masks_train, attention_masks_test, tokenizer
+
+def conv_to_tensor(input_ids_train, input_ids_test, attention_masks_train, attention_masks_test,):
+    # Convert to tensors
+    input_ids_train = tf.stack(input_ids_train, axis=0)
+    input_ids_test = tf.stack(input_ids_test, axis=0)
+
+    attention_masks_train = tf.stack(attention_masks_train, axis=0)  
+    attention_masks_test = tf.stack(attention_masks_test, axis=0)
+    
+    return input_ids_train, input_ids_test, attention_masks_train, attention_masks_test
 
 def train_model(model_name, **kwargs):
     if model_name == "TFBERT":
-        #Unpack data kwargs
-        input_ids_train = kwargs['input_ids_train']
-        attention_masks_train = kwargs['attention_masks_train']
-        labels_train = kwargs['labels_train']
 
         #Unpack parameter kwargs
         new_model_name = kwargs['new_model_name']
@@ -30,7 +124,28 @@ def train_model(model_name, **kwargs):
         staircase = kwargs['staircase']
         epochs = kwargs['epochs']
 
+        # define directory and load previously trained model
+        cur_dir = os.getcwd()
+        #os.chdir(cur_dir)
+
+        tokenizer = BertTokenizer.from_pretrained(cur_dir + "/content/models/bert_emotion_classifier_model_reddit")
         model = TFBertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=6)
+        
+        df = pd.read_json('hug_data.jsonl', lines=True)
+        df.rename(columns={'label':'labels'}, inplace=True) # rename label to label_encoded
+
+        # get subset of df for testing/debugging/development (CHANGE THIS IN THE FUTURE)
+        df = df.groupby('labels').apply(lambda x: x.sample(n=14959)).reset_index(drop=True)
+        df = df.sample(frac=1).reset_index(drop=True) # shuffle df
+
+        texts = df['text'].values
+        labels = df['labels'].values
+
+        # Split, tokenize, and convert to tensors
+        print('splitting')
+        texts_train, texts_test, labels_train, labels_test = train_test_split(texts, labels, test_size=0.2)
+        input_ids_train, input_ids_test, attention_masks_train, attention_masks_test, tokenizer = tokenize_data(texts_train, texts_test)
+        input_ids_train, input_ids_test, attention_masks_train, attention_masks_test = conv_to_tensor(input_ids_train, input_ids_test, attention_masks_train, attention_masks_test)
 
         # Learning rate schedule
         initial_learning_rate = 0.0001
@@ -94,3 +209,4 @@ def evaluate_model(model,df, **kwargs):
 
     # preview report
     return final_df, report_df
+
