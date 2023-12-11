@@ -108,7 +108,7 @@ def analysis_data_tabs():
             
             #st.write(df)
             
-           # Assuming the reddit_scraper function returns a dataframe
+        # Assuming the reddit_scraper function returns a dataframe
             if df is not None and not df.empty:
                 st.write(f"First few rows the fetched data (out of {len(df)}):")
                 st.dataframe(df.head(), use_container_width=True)
@@ -125,7 +125,7 @@ def analysis_data_tabs():
                 st.write("No live data fetched")
                 
 def analysis_model_tab(): 
-  
+
     model_directory = "content/models"
     all_items = glob.glob(os.path.join(model_directory, "*"))
     analysis_model_files = sorted([x for x in all_items if re.search('model', os.path.basename(x))])

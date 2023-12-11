@@ -7,15 +7,52 @@ from transformers import TFBertForSequenceClassification, BertTokenizer
 from suggestions import  train_model, evaluate_model
 from datacode import get_data_from_source, split_data, tokenize_tensorize_data
 from Model_ForGIT6_model_apply import EmotionClassifier
+import streamlit as st
+from sklearn.metrics import classification_report
+import re
+import glob
+import pandas as pd
+from transformers import TFBertForSequenceClassification, BertTokenizer
+from datacode import get_data_from_source, split_data, tokenize_tensorize_data
+from Model_ForGIT6_model_apply import*
+import statistics
+import praw
+import pandas as pd
+from datetime import datetime, timedelta
+import time
+from tqdm import tqdm
+import prawcore
+from concurrent.futures import ThreadPoolExecutor
+from transformers import pipeline
+import pandas as pd
+import numpy as np
+import os
+from collections import Counter
 
 
-# Function taht controls the data selection tabs
-# TODO: add current selected data in tab header
 def train_data_tabs():
-    # Initalize buttons that need it
-    st.session_state.butTokenizeDsabled = True
+    """
+    Control process for selecting data when testing or training models.
 
-    # Source select for preloaded data
+    Args:
+        None
+
+    Returns:
+        None
+    """
+
+    # Initalization of session_state variables
+    st.session_state.butTokenizeDsabled = True
+    st.session_state.labels = []
+    st.session_state.text = []
+    st.session_state.dataSource = pd.DataFrame()
+    st.session_state.labels = []
+    st.session_state.text = []
+    st.session_state.sampleSize = 0
+    st.session_state.butTokenizeDsabled = False
+    
+    
+    # Select data source(Modular for optinal future addition of datasets)
     dataSource = pd.DataFrame()
     dataOption_selectbox = st.selectbox(
     'Select training data from available data sets',
@@ -24,6 +61,7 @@ def train_data_tabs():
     placeholder="Select data source...",)
 
     if dataOption_selectbox == 'Hugging Face Twitter Data':
+        # Assign data to session_state variables
         dataSource = pd.read_json('hug_data.jsonl', lines=True)
         st.session_state.labels = [i for i in dataSource.columns]
         st.session_state.text = [i for i in dataSource.columns]
@@ -33,6 +71,7 @@ def train_data_tabs():
         st.session_state.sampleSize = 14959
         st.session_state.butTokenizeDsabled = False
     
+        # Select box's for user selection of label and text from dataset
         labelColumn, textColumn = st.columns(2)
         with textColumn:
             train_text_selection = st.selectbox(
@@ -44,24 +83,35 @@ def train_data_tabs():
                 ("Select a column as label"), st.session_state.labels, index=None)
             st.session_state.choosenLabel = train_label_selection
     
-    
-    # Display data
+    # Display choosen data source
     st.dataframe(dataSource, use_container_width=True)
 
-    
+    # Button to tokenize data as well as breakout into testing and training sets in session_state variables
     if st.button('Tokenize Data', key='but_tokenize', disabled=st.session_state.butTokenizeDsabled):
-        # Format raw data
+        # Format raw data into label and text sets
         data_raw = get_data_from_source(st.session_state.dataSource, st.session_state.sampleSize, st.session_state.choosenLabel,st.session_state.choosenText)
-        # split data
+        
+        # Split data into testing and training sets, storing the data in 
         data_split = split_data(data_raw[1],data_raw[2],0.2)
         st.session_state.data_split = data_split
         st.session_state.trainLabelData = data_split[2]
         st.session_state.testLabelData = data_split[3]
-        # Tokenize
+        
+        # Tokenize the sets and store the sets in the session_state variables
         tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         st.session_state.tokenizedData = tokenize_tensorize_data(tokenizer,data_split[0],data_split[1])
 
 def train_model_tab():
+    """
+    Control process for selecting model type when testing or training models.
+    As well as testing/traing that model.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     st.session_state.modelHyperParams= {}
     st.session_state.testModelHyperParams ={}
     st.session_state.modelHyperParams['staircase'] = True
@@ -89,17 +139,46 @@ def train_model_tab():
             st.session_state.testModelHyperParams['texts_test'] =  st.session_state.data_split[1]
 
             cwd = os.getcwd()
-            classifier = EmotionClassifier(model_name='bert', 
-                                        model_path=cwd + '/content/models/' + st.session_state.model, 
-                                        tokenizer_path=''#cwd + '/content/models/' +  st.session_state.tokenizer
-                                        )
-            st.write(evaluate_model(classifier, **st.session_state.testModelHyperParams))
+
+            #classifier = EmotionClassifier(cwd + '/content/models/' + st.session_state.model, cwd + '/content/models/' +  st.session_state.tokenizer)
+            classifier = EmotionClassifier(model_name=st.session_state.model_name, 
+                                            model_path=cwd + '/content/models/' + st.session_state.model, 
+                                            tokenizer_path=''#cwd + '/content/models/' +  st.session_state.tokenizer
+                                            )
+            print("classifer loaded")
+            print(classifier)
+            # Arrange Date groups by selected range
+
+            # Predict on each piece of data and store in its date group
+            df = pd.read_csv('output.csv')
+            sent_scores = []
+
+            # datum_preprocessed = classifier.preprocess_text(text)
+            prediction = classifier.predict_emotion(df['Text'].tolist())
+
+
+            # Creating DataFrame
+            y_pred_scores = tf.nn.softmax(prediction, axis=1).numpy()
+            y_pred_labels = tf.argmax(prediction, axis=1).numpy()
+            texts_test_series = pd.Series(st.session_state.data_split[1], name='Text')
+            scores_df = pd.DataFrame(prediction, columns=['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise'])
+            final_df = pd.concat([texts_test_series, scores_df], axis=1)
+
+            # Adding overall score
+            final_df['Overall_Score'] = final_df[['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']].max(axis=1)
+
+            # get classification report
+            report = classification_report(st.session_state.testLabelData, y_pred_labels, target_names=['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise'], output_dict=True)
+            report_df = pd.DataFrame(report).transpose() 
+
+            st.write(final_df, report_df)
+
+            #st.write(evaluate_model(classifier,df, **st.session_state.testModelHyperParams))
 
 
         
     # Train new model tab
     with modelTab2:
-        st.write("Plae Holder")
         trainModelOption_selectbox = st.selectbox(
             'Select Ddta from Pre-Loaded sources',
             ('Retrain TFBertForSequenceClassification', 'Model B', 'Model C'),

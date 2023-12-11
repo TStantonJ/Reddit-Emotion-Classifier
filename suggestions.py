@@ -64,7 +64,7 @@ def train_model(model_name, **kwargs):
         return(model, history)
         
 
-def evaluate_model(model, **kwargs):
+def evaluate_model(model,df, **kwargs):
 
     input_ids_test = kwargs['input_ids_test']
     attention_masks_test = kwargs['attention_masks_test']
@@ -72,14 +72,13 @@ def evaluate_model(model, **kwargs):
     texts_test= kwargs['texts_test']
     print(len(texts_test))
 
-    # Model evaluation for scores
-    y_pred_logits = model.predict_emotions(texts_test.tolist())
-    #y_pred_logits = model.predict_emotions([input_ids_test, attention_masks_test]).logits
+    print(attention_masks_test)
+    y_pred_logits = model.predict_emotions([input_ids_test, attention_masks_test]).logits
     y_pred_scores = tf.nn.softmax(y_pred_logits, axis=1).numpy()
     y_pred_labels = tf.argmax(y_pred_logits, axis=1).numpy()
 
     # Creating DataFrame
-    texts_test_series = pd.Series(texts_test, name='text')
+    texts_test_series = pd.Series(texts_test, name='Text')
     scores_df = pd.DataFrame(y_pred_scores, columns=['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise'])
     final_df = pd.concat([texts_test_series, scores_df], axis=1)
 
