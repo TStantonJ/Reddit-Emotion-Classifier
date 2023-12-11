@@ -1,8 +1,8 @@
 import os
-import streamlit as st
 import re
 import glob
 import pandas as pd
+import streamlit as st
 from Model_ForGIT6_model_apply import *
 from Model_ForGIT6_model_retrain import preprocess_text
 from suggestions import  train_model
@@ -126,7 +126,6 @@ def train_model_tab():
                 st.write(f"Model name: {i}")
                 st.write(prediction, emo_df)
                 pred_df = pred_df._append({'Prediction': prediction, 'Probs': probs}, ignore_index=True)
-
         
     # Train new model tab
     with modelTab2:

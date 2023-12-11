@@ -1,18 +1,15 @@
-import streamlit as st
+import praw
 import re
 import glob
+import matplotlib.pyplot as plt
+import os
 import pandas as pd
-from Model_ForGIT6_model_apply import*
-import praw
-import pandas as pd
+import streamlit as st
+from collections import Counter
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 from transformers import pipeline
-import pandas as pd
-import os
-from collections import Counter
-
-import matplotlib.pyplot as plt
+from Model_ForGIT6_model_apply import*
 
 def preprocess_text(self, text):
     
