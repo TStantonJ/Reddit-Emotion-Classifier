@@ -192,64 +192,65 @@ def evaluate_model(model, input_ids_test, attention_masks_test, labels_test):
   # preview report
   return final_df, report_df
 
+if __name__ == "__main__":
+  # define directory and load previously trained model
+  cur_dir = '/home/ubuntu/NLP/Project_test'
+  os.chdir(cur_dir)
 
-# define directory and load previously trained model
-cur_dir = '/home/ubuntu/NLP/Project_test'
-os.chdir(cur_dir)
+  df_reddit = pd.read_csv('reddit_emotion_sentiments_format.csv')
 
-df_reddit = pd.read_csv('reddit_emotion_sentiments_format.csv')
+  cur_dir = '/home/ubuntu/NLP/Project_test/data_model'
+  os.chdir(cur_dir)
 
-cur_dir = '/home/ubuntu/NLP/Project_test/data_model'
-os.chdir(cur_dir)
+  # Load the saved model
+  model = TFBertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=6)
+  #model = TFRobertaForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=6)
 
-# Load the saved model
-model = TFBertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=6)
-#model = TFRobertaForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=6)
+  # get texts, labels from reddit data; apply preprocessing
+  print('preprocessing reddit data')
+  df_reddit['text'] = df_reddit['text'].apply(preprocess_text)
 
-# get texts, labels from reddit data; apply preprocessing
-print('preprocessing reddit data')
-df_reddit['text'] = df_reddit['text'].apply(preprocess_text)
+  texts_reddit = df_reddit['text'].values
+  labels_reddit = df_reddit['labels'].values
 
-texts_reddit = df_reddit['text'].values
-labels_reddit = df_reddit['labels'].values
+  # get texts, labels from OG twitter data; concat with reddit data
+  print('combining with OG twitter data')
+  df, texts, labels = get_data(4000)
+  texts = np.concatenate((texts, texts_reddit))
+  labels = np.concatenate((labels, labels_reddit))
 
-# get texts, labels from OG twitter data; concat with reddit data
-print('combining with OG twitter data')
-df, texts, labels = get_data(4000)
-texts = np.concatenate((texts, texts_reddit))
-labels = np.concatenate((labels, labels_reddit))
+  # Split, tokenize, and convert to tensors
+  print('splitting')
+  texts_train, texts_test, labels_train, labels_test = train_test_split(texts, labels, test_size=0.2)
+  input_ids_train, input_ids_test, attention_masks_train, attention_masks_test, tokenizer = tokenize_data(texts_train, texts_test)
+  input_ids_train, input_ids_test, attention_masks_train, attention_masks_test = conv_to_tensor(input_ids_train, input_ids_test, attention_masks_train, attention_masks_test)
 
-# Split, tokenize, and convert to tensors
-print('splitting')
-texts_train, texts_test, labels_train, labels_test = train_test_split(texts, labels, test_size=0.2)
-input_ids_train, input_ids_test, attention_masks_train, attention_masks_test, tokenizer = tokenize_data(texts_train, texts_test)
-input_ids_train, input_ids_test, attention_masks_train, attention_masks_test = conv_to_tensor(input_ids_train, input_ids_test, attention_masks_train, attention_masks_test)
+  # Check shapes
+  print(input_ids_train.shape, attention_masks_train.shape, labels_train.shape)
 
-# Check shapes
-print(input_ids_train.shape, attention_masks_train.shape, labels_train.shape)
-
-# Retrain the model
-print('training new model...')
-model, history = model_train(input_ids_train, 
-                                            attention_masks_train, 
-                                            labels_train, 
-                                            batch_size=128, 
-                                            epochs=15, 
-                                            model = model)
+  # Retrain the model
+  print('training new model...')
+  model, history = model_train(input_ids_train, 
+                                              attention_masks_train, 
+                                              labels_train, 
+                                              batch_size=128, 
+                                              epochs=15, 
+                                              model = model)
 
 
-# Evaluate the retrained model
-print('evaluating...')
-final_df, report_df = evaluate_model(model, input_ids_test, attention_masks_test, labels_test)
-print('getting csv files')
-final_df.to_csv('classifier_df_reddit.csv', index=False)
-report_df.to_csv('classifier_report_reddit.csv', index=True)
-print('printing..')
-print(final_df.head())
-print(report_df)
+  # Evaluate the retrained model
+  print('evaluating...')
+  final_df, report_df = evaluate_model(model, input_ids_test, attention_masks_test, labels_test)
+  print('getting csv files')
+  final_df.to_csv('classifier_df_reddit.csv', index=False)
+  report_df.to_csv('classifier_report_reddit.csv', index=True)
+  print('printing..')
+  print(final_df.head())
+  print(report_df)
 
-# Save the retrained model and tokenizer
-print('saving')
-model.save_pretrained(os.path.join('bert_emotion_classifier_reddit'))
-tokenizer.save_pretrained(os.path.join('bert_emotion_classifier_tokenizer_reddit'))
-print('done')
+  # Save the retrained model and tokenizer
+  print('saving')
+  model.save_pretrained(os.path.join('bert_emotion_classifier_reddit'))
+  tokenizer.save_pretrained(os.path.join('bert_emotion_classifier_tokenizer_reddit'))
+  print('done')
+  

@@ -28,6 +28,7 @@ import pandas as pd
 import numpy as np
 import os
 from collections import Counter
+from Model_ForGIT6_model_retrain import preprocess_text, tokenize_data, conv_to_tensor
 
 
 def train_data_tabs():
@@ -132,47 +133,27 @@ def train_model_tab():
         st.write(st.session_state.model)
 
         if st.button('Test'):
-            # Transfer input data
-            st.session_state.testModelHyperParams['input_ids_test'] =  st.session_state.tokenizedData[1]
-            st.session_state.testModelHyperParams['attention_masks_test'] =  st.session_state.tokenizedData[3]
-            st.session_state.testModelHyperParams['labels_test'] =  st.session_state.testLabelData
-            st.session_state.testModelHyperParams['texts_test'] =  st.session_state.data_split[1]
-
             cwd = os.getcwd()
-
-            #classifier = EmotionClassifier(cwd + '/content/models/' + st.session_state.model, cwd + '/content/models/' +  st.session_state.tokenizer)
             classifier = EmotionClassifier(model_name=st.session_state.model_name, 
                                             model_path=cwd + '/content/models/' + st.session_state.model, 
                                             tokenizer_path=''#cwd + '/content/models/' +  st.session_state.tokenizer
                                             )
             print("classifer loaded")
             print(classifier)
+
+            print('preprocessing reddit data')
+            df_reddit = pd.read_json('hug_data.jsonl', lines=True)
+            df_reddit['text'] = df_reddit['text'].apply(preprocess_text)
             # Arrange Date groups by selected range
 
-            # Predict on each piece of data and store in its date group
-            df = pd.read_csv('output.csv')
-            sent_scores = []
+            texts_reddit = df_reddit['text'].values
+            labels_reddit = df_reddit['label'].values
+            texts_test=[]
+            input_ids_train, input_ids_test, attention_masks_train, attention_masks_test, classifier.tokenizer = tokenize_data(texts_reddit, texts_test)
+            input_ids_train, input_ids_test, attention_masks_train, attention_masks_test = conv_to_tensor(input_ids_train, input_ids_test, attention_masks_train, attention_masks_test)
 
-            # datum_preprocessed = classifier.preprocess_text(text)
-            prediction = classifier.predict_emotion(df['Text'].tolist())
-
-
-            # Creating DataFrame
-            y_pred_scores = tf.nn.softmax(prediction, axis=1).numpy()
-            y_pred_labels = tf.argmax(prediction, axis=1).numpy()
-            texts_test_series = pd.Series(st.session_state.data_split[1], name='Text')
-            scores_df = pd.DataFrame(prediction, columns=['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise'])
-            final_df = pd.concat([texts_test_series, scores_df], axis=1)
-
-            # Adding overall score
-            final_df['Overall_Score'] = final_df[['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']].max(axis=1)
-
-            # get classification report
-            report = classification_report(st.session_state.testLabelData, y_pred_labels, target_names=['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise'], output_dict=True)
-            report_df = pd.DataFrame(report).transpose() 
-
+            final_df, report_df = evaluate_model(classifier, input_ids_train, attention_masks_train, labels_reddit)
             st.write(final_df, report_df)
-
             #st.write(evaluate_model(classifier,df, **st.session_state.testModelHyperParams))
 
 
