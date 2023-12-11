@@ -1,44 +1,25 @@
-import streamlit as st
 import re
 import glob
-import pandas as pd
-from transformers import TFBertForSequenceClassification, BertTokenizer
-from datacode import get_data_from_source, split_data, tokenize_tensorize_data
-from Model_ForGIT6_model_apply import*
-import statistics
-import praw
-import pandas as pd
-from datetime import datetime, timedelta
-import time
-from tqdm import tqdm
-import prawcore
-from concurrent.futures import ThreadPoolExecutor
-from transformers import pipeline
-import pandas as pd
-import numpy as np
-import os
-from collections import Counter
-
 import matplotlib.pyplot as plt
-
-def preprocess_text(self, text):
-    # Ensure text is not None
-    #if text is None:
-    #    return 'none none none none'
-    
-    text = re.sub(r'http\S+', '', text)
-    text = re.sub(r'[^a-zA-Z0-9.,;:!?\'\"-]', ' ', text)
-    text = text.lower()
-    text = ' '.join([word for word in text.split() if word not in stopwords.words('english')])
-    text = re.sub(' +', ' ', text)
-
-    # Lemmatize
-    doc = nlp(text)
-    text = ' '.join([lemmatizer.lemmatize(token.text) for token in doc])
-
-    return text
+import os
+import pandas as pd
+import streamlit as st
+from collections import Counter
+from transformers import pipeline
+from model_functions import *
+from reddit_scraper import reddit_scraper
 
 def analysis_data_tabs():
+    """
+    Control process for selecting data when analysising subreddits.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
+
     # Initalize buttons that need it
     st.session_state.butTokenizeDisabled = True
 
@@ -54,13 +35,6 @@ def analysis_data_tabs():
             index=None,
             placeholder="Select data source...",)
 
-            # if dataOption_selectbox == 'Merged Reddit Data':
-            #     dataSource = pd.read_csv('preloadedData/merged_reddit_data.csv')
-            #     st.session_state.dataSource = dataSource
-            # elif dataOption_selectbox == 'Hugging Face Twitter Data':
-            #     dataSource = pd.read_json('hug_data.jsonl', lines=True)
-            #     dataSource.rename(columns={'label':'labels'}, inplace=True) # rename label to label_encoded
-            #     st.session_state.dataSource = dataSource
             if dataOption_selectbox == 'Reddit post and comments':
                 dataSource = pd.read_csv('reddit_posts_and_comments.csv', parse_dates = ['Creation Date'])
                 st.session_state.dataSource = dataSource
@@ -88,10 +62,6 @@ def analysis_data_tabs():
         with intervalcolumn:
             # button for interval
             interval = st.selectbox('Interval', ('daily', 'weekly', 'monthly'), index=1, key=None)
-
-        # button for output file
-        #output_file = st.text_input('Output file name', value='reddit_posts_and_comments.csv', #max_chars=None, key=None, type='default')
-
         
         # You can include a button to trigger the scraping process
         if st.button('Fetch Live Data'):
@@ -105,8 +75,6 @@ def analysis_data_tabs():
                                 interval=interval, 
                                 top_comments_count=num_comments, 
                                 output_file='reddit_posts_and_comments.csv')
-            
-            #st.write(df)
             
         # Assuming the reddit_scraper function returns a dataframe
             if df is not None and not df.empty:
@@ -125,7 +93,15 @@ def analysis_data_tabs():
                 st.write("No live data fetched")
                 
 def analysis_model_tab(): 
+    """
+    Control process for analysising subreddits.
 
+    Args:
+        None
+
+    Returns:
+        None
+    """
     model_directory = "content/models"
     all_items = glob.glob(os.path.join(model_directory, "*"))
     analysis_model_files = sorted([x for x in all_items if re.search('model', os.path.basename(x))])
@@ -166,7 +142,6 @@ def analysis_model_tab():
         df = pd.read_csv('output.csv')
         sent_scores = []
 
-        # datum_preprocessed = classifier.preprocess_text(text)
         prediction, probs = classifier.predict_emotions(df['Text'].tolist())
         df['Sentiment'] = prediction
         emotion_columns = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
@@ -185,31 +160,9 @@ def analysis_model_tab():
         # Compute average for each emotion for each interval
         combined_averages = df.groupby('Interval Number')[emotion_columns].mean()
 
-        # absolute value of difference between positive and negative scores
-        # df['pos/neg difference'] = abs(combined_averages['Positive'] - combined_averages['Negative'])
-        # Save the DataFrame
         combined_averages.to_csv('combined_averages.csv')
 
         st.write(combined_averages)
-
-        # Plotting
-        # fig, axes = plt.subplots(len(combined_averages.columns), 1, figsize=(10, 5 * len(combined_averages.columns)))
-        #axes2 = axes.twinx()
-        #
-        # for i, column in enumerate(combined_averages.columns):
-        #     combined_averages[column].plot(ax=axes[i], marker='o', title=column)
-        #     axes[i].set_ylabel('Average Score')
-        #     axes[i].set_xlabel('Interval Number')
-        #     axes[i].invert_xaxis()
-        #
-        #     # change the x-axis ticks to be the inverse of the interval number
-        #     axes[i].set_xticks(combined_averages.index)
-        #     axes[i].set_xticklabels(combined_averages.index[::-1])
-        #
-        # plt.tight_layout()
-
-        # Use Streamlit's pyplot function to display the figure
-        # st.pyplot(fig)
         emotion_columns = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
 
         # Plotting
@@ -235,10 +188,7 @@ def analysis_model_tab():
 
         # Display the plot in Streamlit
         st.pyplot(fig)
-
-
         attributes = ['Positive', 'Negative']
-
         # Plotting
         fig, ax = plt.subplots(figsize=(10, 5))
 
@@ -263,166 +213,3 @@ def analysis_model_tab():
         # Display the plot in Streamlit
         st.pyplot(fig)
 
-        # average_scores = df.groupby(['Interval Number', 'Sentiment'])['Score'].mean().reset_index()
-        # st.write(average_scores)
-        # ----------------------------------------------------------------------
-        # Plotting with dual y-axis
-        # fig, ax1 = plt.subplots(figsize=(10, 5))
-        # pos_neg_diff_average = df.groupby('Interval Number')['pos/neg difference'].mean()
-        #
-        # # Plotting Positive and Negative scores on the primary y-axis (ax1)
-        # for attribute in attributes:
-        #     combined_averages[attribute].plot(ax=ax1, marker='o', label=attribute)
-        #
-        # # Adding title, labels, and legend for the primary y-axis
-        # ax1.set_title('Positive and Negative Scores vs Interval Number with Pos/Neg Difference')
-        # ax1.set_ylabel('Average Score (considering proportion)')
-        # ax1.set_xlabel('Interval Number')
-        # ax1.legend(loc='upper left')
-        #
-        # # Invert the x-axis and adjust the x-ticks for the primary y-axis
-        # ax1.invert_xaxis()
-        # ax1.set_xticks(combined_averages.index)
-        # ax1.set_xticklabels(combined_averages.index[::-1])
-        #
-        # # Creating a secondary y-axis for pos/neg difference
-        # ax2 = ax1.twinx()
-        #
-        # # Plotting pos/neg difference on the secondary y-axis (ax2)
-        # pos_neg_diff_average.plot(ax=ax2, marker='s', color='green', label='Pos/Neg Difference', linestyle='--')
-        #
-        # # Adding labels and legend for the secondary y-axis
-        # ax2.set_ylabel('Average Absolute Difference')
-        # ax2.legend(loc='upper right')
-        #
-        # plt.tight_layout()
-        #
-        # # Display the plot in Streamlit
-        # st.pyplot(fig)
-
-        # ----------------------------------------------------------
-
-        # Plotting Emotions with Pos/Neg Difference
-        # fig, ax1 = plt.subplots(figsize=(10, 5))
-        #
-        # # Iterate over each emotion and plot it on the primary y-axis (ax1)
-        # for emotion in emotion_columns:
-        #     combined_averages[emotion].plot(ax=ax1, marker='o', label=emotion)
-        #
-        # # Setting primary y-axis labels and title
-        # ax1.set_title('Emotion Scores vs Interval Number with Pos/Neg Difference')
-        # ax1.set_ylabel('Average Emotion Score')
-        # ax1.set_xlabel('Interval Number')
-        #
-        # # Invert the x-axis and adjust the x-ticks for the primary y-axis
-        # ax1.invert_xaxis()
-        # ax1.set_xticks(combined_averages.index)
-        # ax1.set_xticklabels(combined_averages.index[::-1])
-        #
-        # # Creating a secondary y-axis for pos/neg difference
-        # ax2 = ax1.twinx()
-        #
-        # # Plotting pos/neg difference on the secondary y-axis (ax2)
-        # pos_neg_diff_average.plot(ax=ax2, marker='s', color='green', label='Pos/Neg Difference', linestyle='--')
-        #
-        # # Setting secondary y-axis labels
-        # ax2.set_ylabel('Average Absolute Difference')
-        #
-        # # Adding legends for both y-axes
-        # ax1.legend(loc='upper left')
-        # ax2.legend(loc='upper right')
-        #
-        # plt.tight_layout()
-        #
-        # # Display the plot in Streamlit
-        # st.pyplot(fig)
-        #
-
-
-
-def reddit_scraper(client_id, client_secret, user_agent, num_posts, subreddit_name, interval, time_filter, top_comments_count, output_file):
-    class RedditScraper:
-        def __init__(self, client_id, client_secret, user_agent):
-            self.reddit = praw.Reddit(
-                client_id=client_id,
-                client_secret=client_secret,
-                user_agent=user_agent)
-
-        def fetch_posts(self, num_posts, sub_name, interval):
-            subreddit = self.reddit.subreddit(sub_name)
-            print(time_filter)
-            posts = subreddit.top(time_filter=str(time_filter), limit=num_posts)
-            posts_list = list(posts)
-            posts_list.sort(key=lambda post: post.created_utc, reverse=True)
-
-            intervals = {
-                'daily': timedelta(days=1),
-                'weekly': timedelta(weeks=1),
-                'monthly': timedelta(weeks=4)}
-
-            end_time = datetime.utcfromtimestamp(posts_list[0].created_utc)
-            nested_posts = []
-            current_interval_start = end_time
-            data = []
-            interval_num = 0
-
-            for post in posts_list:
-                post_time = datetime.utcfromtimestamp(post.created_utc)
-
-                if post_time < current_interval_start - intervals[interval]:
-                    interval_num += 1
-                    current_interval_start = post_time
-
-                data.append({
-                    'Post/Comment': 'Post',
-                    'ID': post.id,
-                    'Text': post.title + post.selftext,
-                    'Creation Date': datetime.utcfromtimestamp(post.created_utc).strftime('%Y-%m-%d'),
-                    'Interval Number': interval_num})
-
-            interval_counts = Counter([entry['Interval Number'] for entry in data])
-            plt.bar(interval_counts.keys(), interval_counts.values())
-            plt.xlabel('Interval Number')
-            plt.ylabel('Number of Entries')
-            plt.title('Number of Entries per Interval')
-            plt.show()
-
-            return data, posts_list
-
-        def fetch_comments(self, submission, limit, interval_num):
-            submission.comment_sort = 'best'
-            submission.comments.replace_more(limit=0)
-
-            return [{'Post/Comment': 'Comment', 'ID': submission.id, 'Text': comment.body,
-                     'Creation Date': datetime.utcfromtimestamp(comment.created_utc).strftime('%Y-%m-%d'),
-                     'Interval Number': interval_num} for comment in submission.comments.list()[:limit]]
-
-        def create(self, num_posts, subreddit_name, interval, top_comments_count, output_file):
-
-            data, posts_list = self.fetch_posts(num_posts, subreddit_name, interval)
-            interval_nums = [d['Interval Number'] for d in data]
-
-            with ThreadPoolExecutor() as executor:
-                comments_list = list(executor.map(lambda p: self.fetch_comments(p[0], top_comments_count, p[1]),
-                                                  list(zip(posts_list, interval_nums))))
-
-            data.extend([comment for comment_list in comments_list for comment in comment_list])
-
-            df = pd.DataFrame(data)
-            #df.to_csv(output_file, index=True)
-            return df
-
-    scraper = RedditScraper(client_id, client_secret, user_agent)
-    tmp = scraper.create(num_posts, subreddit_name, interval, top_comments_count, output_file)
-    return tmp
-
-
-def plot_sentiment_scores(average_scores):
-    plt.figure(figsize=(10, 6))
-    plt.bar(range(len(average_scores)), average_scores, color='skyblue')
-    plt.xlabel('Interval Number')
-    plt.ylabel('Average Sentiment Score')
-    plt.title('Average Sentiment Scores per Interval')
-    plt.xticks(range(len(average_scores)))
-    plt.ylim([0, 1])
-    return plt

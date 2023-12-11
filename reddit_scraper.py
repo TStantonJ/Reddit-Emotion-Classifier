@@ -1,107 +1,76 @@
 import praw
 import pandas as pd
 from datetime import datetime, timedelta
-import time
-from tqdm import tqdm
-import prawcore
+from concurrent.futures import ThreadPoolExecutor
+from collections import Counter
 
+def reddit_scraper(client_id, client_secret, user_agent, num_posts, subreddit_name, interval, time_filter, top_comments_count, output_file):
+    class RedditScraper:
+        def __init__(self, client_id, client_secret, user_agent):
+            self.reddit = praw.Reddit(
+                client_id=client_id,
+                client_secret=client_secret,
+                user_agent=user_agent)
 
-class RedditScraper:
+        def fetch_posts(self, num_posts, sub_name, interval):
+            subreddit = self.reddit.subreddit(sub_name)
+            print(time_filter)
+            posts = subreddit.top(time_filter=str(time_filter), limit=num_posts)
+            posts_list = list(posts)
+            posts_list.sort(key=lambda post: post.created_utc, reverse=True)
 
-    def __init__(self, client_id, client_secret, user_agent):
-        self.reddit = praw.Reddit(
-            client_id=client_id,
-            client_secret=client_secret,
-            user_agent=user_agent
-        )
+            intervals = {
+                'daily': timedelta(days=1),
+                'weekly': timedelta(weeks=1),
+                'monthly': timedelta(weeks=4)}
 
-    def fetch_posts(self, sub_name, interval):
-        subreddit = self.reddit.subreddit(sub_name)
-        posts = subreddit.top(limit=None)
-        posts_list = list(posts)
-        posts_list.sort(key=lambda post: post.created_utc, reverse=True)
+            end_time = datetime.utcfromtimestamp(posts_list[0].created_utc)
+            nested_posts = []
+            current_interval_start = end_time
+            data = []
+            interval_num = 0
 
-        intervals = {
-            'daily': timedelta(days=1),
-            'weekly': timedelta(weeks=1),
-            'monthly': timedelta(weeks=4)
-        }
+            for post in posts_list:
+                post_time = datetime.utcfromtimestamp(post.created_utc)
 
-        end_time = datetime.utcfromtimestamp(posts_list[0].created_utc)
-        nested_posts = []
-        current_interval_start = end_time
-        current_interval_posts = []
+                if post_time < current_interval_start - intervals[interval]:
+                    interval_num += 1
+                    current_interval_start = post_time
 
-        for post in posts_list:
-            post_time = datetime.utcfromtimestamp(post.created_utc)
+                data.append({
+                    'Post/Comment': 'Post',
+                    'ID': post.id,
+                    'Text': post.title + post.selftext,
+                    'Creation Date': datetime.utcfromtimestamp(post.created_utc).strftime('%Y-%m-%d'),
+                    'Interval Number': interval_num})
 
-            if post_time < current_interval_start - intervals[interval]:
-                nested_posts.append(current_interval_posts)
-                current_interval_posts = []
-                current_interval_start = post_time
+            interval_counts = Counter([entry['Interval Number'] for entry in data])
 
-            current_interval_posts.append(post)
+            return data, posts_list
 
-        if current_interval_posts:
-            nested_posts.append(current_interval_posts)
+        def fetch_comments(self, submission, limit, interval_num):
+            submission.comment_sort = 'best'
+            submission.comments.replace_more(limit=0)
 
-        return nested_posts
+            return [{'Post/Comment': 'Comment', 'ID': submission.id, 'Text': comment.body,
+                        'Creation Date': datetime.utcfromtimestamp(comment.created_utc).strftime('%Y-%m-%d'),
+                        'Interval Number': interval_num} for comment in submission.comments.list()[:limit]]
 
-    def create_csv(self, nested_posts, top_comments_count, filename='reddit_posts_and_comments.csv'):
-        data = []
-        total_posts = sum(len(posts) for posts in nested_posts)
+        def create(self, num_posts, subreddit_name, interval, top_comments_count, output_file):
 
-        with tqdm(total=total_posts, desc="Processing Posts") as pbar:
-            for interval_index, interval_posts in enumerate(nested_posts):
-                for post in interval_posts:
-                    data.append({
-                        'Post/Comment': 'Post',
-                        'ID': post.id,
-                        'Text': post.title + post.selftext,
-                        'Creation Date': datetime.utcfromtimestamp(post.created_utc).strftime('%Y-%m-%d'),
-                        'Interval Number': interval_index
-                    })
+            data, posts_list = self.fetch_posts(num_posts, subreddit_name, interval)
+            interval_nums = [d['Interval Number'] for d in data]
 
-                    try:
-                        submission = self.reddit.submission(id=post.id)
-                        submission.comment_sort = 'best'
-                        submission.comments.replace_more(limit=None)
+            with ThreadPoolExecutor() as executor:
+                comments_list = list(executor.map(lambda p: self.fetch_comments(p[0], top_comments_count, p[1]),
+                                                list(zip(posts_list, interval_nums))))
 
-                        for comment in submission.comments[:top_comments_count]:
-                            if hasattr(comment, "author") and comment.author:
-                                data.append({
-                                    'Post/Comment': 'Comment',
-                                    'ID': comment.id,
-                                    'Text': comment.body,
-                                    'Creation Date': datetime.utcfromtimestamp(comment.created_utc).strftime(
-                                        '%Y-%m-%d'),
-                                    'Interval Number': interval_index
-                                })
-                    except praw.exceptions.RedditAPIException as e:
-                        print(f"Rate limit exceeded. Waiting for {e.sleep_time} seconds.")
-                        time.sleep(e.sleep_time)
+            data.extend([comment for comment_list in comments_list for comment in comment_list])
 
-                    except prawcore.exceptions.ResponseException as e:
+            df = pd.DataFrame(data)
+            #df.to_csv(output_file, index=True)
+            return df
 
-                        if e.response.status_code == 429:
-                            retry_after = int(e.response.headers.get('Retry-After', 60))
-                            print(f"Rate limit exceeded. Waiting for {retry_after} seconds.")
-
-                    pbar.update(1)
-
-        df = pd.DataFrame(data)
-        df.to_csv(filename, index=True)
-
-    def create(self, subreddit_name, interval, top_comments_count, output_file):
-        nested_posts = self.fetch_posts(subreddit_name, interval)
-        self.create_csv(nested_posts, top_comments_count, output_file)
-
-
-def main():
-    scraper = RedditScraper(client_id="nFKOCvQQEIoW2hFeVG6kfA", client_secret="5BBB4fr-HMPtO8f4jZhle74-fYcDkQ",
-                            user_agent="Icy_Process3191")
-    scraper.create('pharmacy', 'weekly', 3, 'reddit_posts_and_comments.csv')
-
-
-if __name__ == "__main__":
-    main()
+    scraper = RedditScraper(client_id, client_secret, user_agent)
+    tmp = scraper.create(num_posts, subreddit_name, interval, top_comments_count, output_file)
+    return tmp

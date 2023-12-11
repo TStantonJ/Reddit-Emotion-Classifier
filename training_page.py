@@ -1,34 +1,9 @@
-import  streamlit as st
-import re
 import os
+import re
 import glob
 import pandas as pd
-from transformers import TFBertForSequenceClassification, BertTokenizer
-from suggestions import  train_model, evaluate_model
-from datacode import get_data_from_source, split_data, tokenize_tensorize_data
-from Model_ForGIT6_model_apply import EmotionClassifier
 import streamlit as st
-from sklearn.metrics import classification_report
-import re
-import glob
-import pandas as pd
-from transformers import TFBertForSequenceClassification, BertTokenizer
-from datacode import get_data_from_source, split_data, tokenize_tensorize_data
-from Model_ForGIT6_model_apply import*
-import statistics
-import praw
-import pandas as pd
-from datetime import datetime, timedelta
-import time
-from tqdm import tqdm
-import prawcore
-from concurrent.futures import ThreadPoolExecutor
-from transformers import pipeline
-import pandas as pd
-import numpy as np
-import os
-from collections import Counter
-from Model_ForGIT6_model_retrain import preprocess_text, tokenize_data, conv_to_tensor
+from model_functions import *
 
 
 def train_data_tabs():
@@ -76,31 +51,20 @@ def train_data_tabs():
         labelColumn, textColumn = st.columns(2)
         with textColumn:
             train_text_selection = st.selectbox(
-            ("Select a column as text"), st.session_state.text, index=None)
+            ("Select a column as text"), st.session_state.text, index=0)
             st.session_state.choosenText = train_text_selection
         with labelColumn:
             # Allow for selection of label and text
             train_label_selection = st.selectbox(
-                ("Select a column as label"), st.session_state.labels, index=None)
+                ("Select a column as label"), st.session_state.labels, index=1)
             st.session_state.choosenLabel = train_label_selection
+        
     
     # Display choosen data source
     st.dataframe(dataSource, use_container_width=True)
 
-    # Button to tokenize data as well as breakout into testing and training sets in session_state variables
-    if st.button('Tokenize Data', key='but_tokenize', disabled=st.session_state.butTokenizeDsabled):
-        # Format raw data into label and text sets
-        data_raw = get_data_from_source(st.session_state.dataSource, st.session_state.sampleSize, st.session_state.choosenLabel,st.session_state.choosenText)
-        
-        # Split data into testing and training sets, storing the data in 
-        data_split = split_data(data_raw[1],data_raw[2],0.2)
-        st.session_state.data_split = data_split
-        st.session_state.trainLabelData = data_split[2]
-        st.session_state.testLabelData = data_split[3]
-        
-        # Tokenize the sets and store the sets in the session_state variables
-        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        st.session_state.tokenizedData = tokenize_tensorize_data(tokenizer,data_split[0],data_split[1])
+    data_line_selectoin = st.number_input('Select row of sample text', value=10, step=1, format=None, key=None)
+    st.session_state.line_num = data_line_selectoin
 
 def train_model_tab():
     """
@@ -125,43 +89,46 @@ def train_model_tab():
         # Find current seletion of models
         train_model_files = sorted([ x for x in glob.glob1("content/models", "*") if re.search('model', x)])
         train_model_list = [f"{x}" for x in train_model_files]
-                
-        # Allow for selection of model
-        train_selected_model = st.selectbox(
-            ("Select a Model"), train_model_list, index=None)
-        st.session_state.model = train_selected_model
-        st.write(st.session_state.model)
-
-        if st.button('Test'):
-            cwd = os.getcwd()
-            classifier = EmotionClassifier(model_name=st.session_state.model_name, 
-                                            model_path=cwd + '/content/models/' + st.session_state.model, 
-                                            tokenizer_path=''#cwd + '/content/models/' +  st.session_state.tokenizer
-                                            )
-            print("classifer loaded")
-            print(classifier)
-
+        if st.button('Predict'):
+            # Retreieve user selected item
+            line_num = st.session_state.line_num
             print('preprocessing reddit data')
-            df_reddit = pd.read_json('hug_data.jsonl', lines=True)
-            df_reddit['text'] = df_reddit['text'].apply(preprocess_text)
-            # Arrange Date groups by selected range
+            df_twitter = pd.read_json('hug_data.jsonl', lines=True)
+            item = df_twitter.iloc[line_num]
+            item['text'] = preprocess_text(item['text'])
+            st.write(f"Line Text: {df_twitter.iloc[line_num]['text']}")
+            st.write(f"Preprocesses Text: {item['text']}\n")
 
-            texts_reddit = df_reddit['text'].values
-            labels_reddit = df_reddit['label'].values
-            texts_test=[]
-            input_ids_train, input_ids_test, attention_masks_train, attention_masks_test, classifier.tokenizer = tokenize_data(texts_reddit, texts_test)
-            input_ids_train, input_ids_test, attention_masks_train, attention_masks_test = conv_to_tensor(input_ids_train, input_ids_test, attention_masks_train, attention_masks_test)
+            # Predict item with all models
+            pred_df = pd.DataFrame(columns=['Prediction', 'Probs'])
+            for i in train_model_list:
+                st.session_state.model = i
+                if re.search(r'roberta', st.session_state.model, re.IGNORECASE) is not None:
+                    st.session_state.model_name = 'roberta'
+                elif re.search(r'electra', st.session_state.model, re.IGNORECASE) is not None:
+                    st.session_state.model_name = 'electra'
+                elif re.search(r'bert', st.session_state.model, re.IGNORECASE) is not None:
+                    st.session_state.model_name = 'bert'
 
-            final_df, report_df = evaluate_model(classifier, input_ids_train, attention_masks_train, labels_reddit)
-            st.write(final_df, report_df)
-            #st.write(evaluate_model(classifier,df, **st.session_state.testModelHyperParams))
+                cwd = os.getcwd()
+                classifier = EmotionClassifier(model_name=st.session_state.model_name, 
+                                                model_path=cwd + '/content/models/' + st.session_state.model, 
+                                                tokenizer_path=''
+                                                )
+                prediction, probs = classifier.predict_emotions(item["text"])
 
-
+                # Log collected data
+                emotion_columns = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
+                emo_df = pd.DataFrame()
+                emo_df[emotion_columns] = probs  
+                st.write(f"Model name: {i}")
+                st.write(prediction, emo_df)
+                pred_df = pred_df._append({'Prediction': prediction, 'Probs': probs}, ignore_index=True)
         
     # Train new model tab
     with modelTab2:
         trainModelOption_selectbox = st.selectbox(
-            'Select Ddta from Pre-Loaded sources',
+            'Select Model from pre-loaded sources',
             ('Retrain TFBertForSequenceClassification', 'Model B', 'Model C'),
             index=None,
             placeholder="Select model...",)
@@ -211,21 +178,5 @@ def train_model_tab():
             st.session_state.modelHyperParams['decay_steps'] = decay_steps_input
             st.session_state.modelHyperParams['decay_rate'] = decay_rate_input
             st.session_state.modelHyperParams['epochs'] = epochs_input
-
-            # Transfer input data
-            st.session_state.modelHyperParams['input_ids_train'] =  st.session_state.tokenizedData[0]
-            st.session_state.modelHyperParams['attention_masks_train'] =  st.session_state.tokenizedData[2]
-            st.session_state.modelHyperParams['labels_train'] =  st.session_state.trainLabelData
             #
             model, history = train_model(st.session_state.newModelType, **st.session_state.modelHyperParams)
-
-
-
-
-
-        
-
-    
-
-def train_analysis_tab():
-    st.subheader("Analysis")
