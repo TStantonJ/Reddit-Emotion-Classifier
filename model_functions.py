@@ -20,13 +20,26 @@ from transformers import TFRobertaForSequenceClassification, RobertaTokenizer, R
 nlp = spacy.load("en_core_web_sm")
 nltk.download('stopwords')
 nltk.download('wordnet')
-
 # Initialize lemmatizer
 lemmatizer = WordNetLemmatizer()
 
 class EmotionClassifier:
-    def __init__(self, model_path, tokenizer_path, model_name):
+    """
+    Class that controls the sentiment and emotion prediction models
 
+    """
+
+    def __init__(self, model_path, tokenizer_path, model_name):
+        """
+        Initalization method for an EmotionClassifer.
+
+        Args:
+            model_path: path to base model files
+            tokenizer_path: path to base tokenizer files(usually the same as model_path)
+
+        Returns:
+            None
+        """
         self.nlp = spacy.load("en_core_web_sm")
         nltk.download('stopwords')
         nltk.download('wordnet')
@@ -44,6 +57,15 @@ class EmotionClassifier:
 
 
     def preprocess_text(self, text):
+        """
+        Process raw strings. Removes urls, non-alphanums, capitol cases, and stop words.
+
+        Args:
+            text: the string to processes.
+
+        Returns:
+            text: processed string.
+        """
         text = re.sub(r'http\S+', '', text)
         text = re.sub(r'[^a-zA-Z0-9.,;:!?\'\"-]', ' ', text)
         text = text.lower()
@@ -57,7 +79,17 @@ class EmotionClassifier:
         return text
 
     def predict_emotions(self, texts):
-        #print(texts)
+        """
+        Embeds and predicts emotions of a sequence of texts.
+
+        Args:
+            texts: the sequence of texts on which to predict.
+
+        Returns:
+            most_likely_emotions: list of predicted emotions where index corresponds to input text index.
+            probabilities: list of predicted emotions arrays(all 6 emotion values) where index corresponds to input text index.
+        """
+
         encoding = self.tokenizer(
             texts,
             padding=True,
@@ -77,6 +109,16 @@ class EmotionClassifier:
         return most_likely_emotions, probabilities
 
     def predict_emotion(self, text):
+        """
+        Embeds and predicts emotions of a sequence of texts.
+
+        Args:
+            texts: the sequence of texts on which to predict.
+
+        Returns:
+            most_likely_emotions: list of predicted emotions where index corresponds to input text index.
+            probabilities: list of predicted emotions arrays(all 6 emotion values) where index corresponds to input text index.
+        """
         # Tokenize the input text
         encoded_dict = self.tokenizer.encode_plus(
             text,                      
