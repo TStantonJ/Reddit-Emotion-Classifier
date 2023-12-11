@@ -127,16 +127,9 @@ def train_model(model_name, **kwargs):
 
         # define directory and load previously trained model
         cur_dir = os.getcwd()
-        os.chdir(cur_dir)
+        #os.chdir(cur_dir)
 
-        model = TFBertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=6)
         tokenizer = BertTokenizer.from_pretrained(cur_dir + "/content/models/bert_emotion_classifier_model_reddit")
-
-
-        cur_dir = cur_dir + "/content/models"
-        os.chdir(cur_dir)
-
-        # Load the saved model
         model = TFBertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=6)
         
         df = pd.read_json('hug_data.jsonl', lines=True)
