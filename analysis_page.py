@@ -137,7 +137,7 @@ def analysis_model_tab():
             
     # Allow for selection of model
     analysis_selected_model = st.selectbox(
-        ("Select am Model"), analysis_model_list, index=None)
+        ("Select a Model"), analysis_model_list, index=None)
     st.session_state.model = analysis_selected_model
     if analysis_selected_model:
         if re.search(r'roberta', st.session_state.model, re.IGNORECASE) is not None:
