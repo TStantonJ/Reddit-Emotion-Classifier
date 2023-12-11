@@ -1,15 +1,14 @@
 import streamlit as st
-from training_page import  train_data_tabs, train_model_tab, train_analysis_tab
+from training_page import  train_data_tabs, train_model_tab
 from analysis_page import analysis_data_tabs, analysis_model_tab
 
 mainTab1, mainTab2= st.tabs([ "Sentiment Logging Training", "Sentiment Training",])
 
-"""
-Main function calls of the project.
-mainTab1: Core functionality of the program, allows for applying models to live data.
-mainTab2: Allows for demonstraition of models and training of new bert models.
-"""
-mainTab1, mainTab2= st.tabs([ "Sentiment Logging", "Model Training & Analysis",])
+
+# Main function calls of the project.
+# mainTab1: Core functionality of the program, allows for applying models to live data.
+# mainTab2: Allows for demonstraition of models and training of new bert models.
+
 
 # Main analysis/application page
 with mainTab1:
@@ -30,5 +29,3 @@ with mainTab2:
     train_model_tab()
     st.divider()
 
-    # Analysis Section
-    train_analysis_tab()
