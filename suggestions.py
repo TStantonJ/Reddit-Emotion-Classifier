@@ -1,6 +1,5 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MultiLabelBinarizer
 from transformers import TFBertForSequenceClassification, BertTokenizer
 from keras.optimizers import Adam
 from sklearn.metrics import classification_report
