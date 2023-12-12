@@ -14,6 +14,12 @@ To install, run the following:
 pip3 install -r general_requirements.txt
 ```
 
+The trained models should be downloaded before running any files using the following link to an accessable Google Drive. There are four models: BERT, BERT using Reddit data, RoBERTa, and ELECTRA.
+
+```bash
+https://drive.google.com/drive/folders/1mwFB0R89RYZ_qlLp675Z19VXZbMWdCuK?usp=sharing
+```
+
 ---
 
 ## Running project
