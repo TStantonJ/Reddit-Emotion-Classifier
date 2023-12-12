@@ -5,162 +5,214 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from transformers import TFElectraForSequenceClassification, ElectraTokenizer, ElectraConfig
-
-from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.optimizers.schedules import ExponentialDecay
+import os
+import logging
+import re
+import spacy
+import nltk
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
+import csv
+from sklearn.preprocessing import LabelEncoder
+
+logging.basicConfig(level=logging.INFO)
+
+class ElectraClassifier:
+
+    def __init__(self, label_names, model_name='google/electra-small-discriminator'):
+        self.tokenizer = ElectraTokenizer.from_pretrained(model_name)
+        self.model = None
+        self.label_names = label_names
+        self.nlp = spacy.load("en_core_web_sm")
+        nltk.download('stopwords')
+        nltk.download('wordnet')
+        self.lemmatizer = WordNetLemmatizer()
+
+    def load_data_from_jsonl(self, filename):
+        texts, labels = [], []
+        with open(filename, 'r') as file:
+            for line_number, line in enumerate(file, 1):
+                try:
+                    data = json.loads(line)
+                    texts.append(data['text'])
+                    labels.append(data['label'])
+                except json.JSONDecodeError as e:
+                    print(f"Error in line {line_number}: {e}")
+                    break
+
+        input_ids, attention_masks = [], []
+        for text in texts:
+            encoded_dict = self.tokenizer.encode_plus(
+                text,
+                add_special_tokens=True,
+                max_length=128,
+                pad_to_max_length=True,
+                return_attention_mask=True,
+                return_tensors='tf',
+                truncation=True
+            )
+            input_ids.append(encoded_dict['input_ids'])
+            attention_masks.append(encoded_dict['attention_mask'])
+
+        input_ids = tf.concat(input_ids, 0)
+        attention_masks = tf.concat(attention_masks, 0)
+        labels = np.array(labels)
+        return input_ids, attention_masks, labels, texts
 
 
-# Function to load and preprocess data from JSON Lines file
-def load_data_from_jsonl(filename):
-    texts = []
-    labels = []
+    def preprocess_text(self, text):
+        text = re.sub(r'http\S+', '', text)
+        text = re.sub(r'[^a-zA-Z0-9.,;:!?\'\"-]', ' ', text)
+        text = text.lower()
+        text = ' '.join([word for word in text.split() if word not in stopwords.words('english')])
+        text = re.sub(' +', ' ', text)
 
-    with open(filename, 'r') as file:
-        for line_number, line in enumerate(file, 1):
-            try:
-                data = json.loads(line)
-                texts.append(data['text'])
-                labels.append(data['label'])
-            except json.JSONDecodeError as e:
-                print(f"Error in line {line_number}: {e}")
-                break
+        # Lemmatize
+        doc = self.nlp(text)
+        text = ' '.join([self.lemmatizer.lemmatize(token.text) for token in doc])
 
-    input_ids = []
-    attention_masks = []
+        return text
+    def create_model(self, num_labels=6):
+        config = ElectraConfig.from_pretrained('google/electra-small-discriminator', num_labels=num_labels)
+        self.model = TFElectraForSequenceClassification.from_pretrained('google/electra-small-discriminator', config=config)
 
-    for text in texts:
-        encoded_dict = tokenizer.encode_plus(
-            text,
-            add_special_tokens=True,
-            max_length=128,
-            pad_to_max_length=True,
-            return_attention_mask=True,
-            return_tensors='tf',
-            truncation=True
+        lr_schedule = ExponentialDecay(
+            initial_learning_rate=5e-5,
+            decay_steps=1000,
+            decay_rate=0.9,
+            staircase=True
         )
+        optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
+        loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+        self.model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
 
-        input_ids.append(encoded_dict['input_ids'])
-        attention_masks.append(encoded_dict['attention_mask'])
+    def train_model(self, train_data, validation_data, epochs=15, batch_size=128):
+        model_path = os.path.join(os.getcwd(), 'best_model_electra')
+        logging.info(f"Model and tokenizer will be saved to: {model_path}")
 
-    input_ids = tf.concat(input_ids, 0)
-    attention_masks = tf.concat(attention_masks, 0)
+        callbacks = [
+            EarlyStopping(monitor='val_loss', patience=3)
+        ]
 
-    labels = np.array(labels)
+        try:
+            history = self.model.fit(
+                train_data,
+                epochs=epochs,
+                batch_size=batch_size,
+                validation_data=validation_data,
+                callbacks=callbacks,
+                verbose=1
+            )
 
-    labels_series = pd.Series(labels)
-    return input_ids, attention_masks, labels, texts, labels_series
+            # Save the model and the tokenizer
+            self.model.save_pretrained(model_path)
+            self.tokenizer.save_pretrained(model_path)
 
-# Function to create and compile the ElectraRoberta model
-def create_model(num_labels=6):
+        except Exception as e:
+            logging.error(f"Error during model training: {e}")
+            raise
 
-    config = ElectraConfig.from_pretrained('google/electra-small-discriminator', num_labels=num_labels)
-    model = TFElectraForSequenceClassification.from_pretrained('google/electra-small-discriminator', config=config)
+        return history
 
-    initial_learning_rate = 5e-5
-    decay_rate = 0.9
-    decay_steps = 1000
+    def evaluate_model(self, validation_data, texts_validation, label_names):
+        input_ids_test, attention_masks_test, labels_test = validation_data.values()
+        texts_test_series = pd.Series(texts_validation, name='Text')
 
-    lr_schedule = ExponentialDecay(
-        initial_learning_rate,
-        decay_steps=decay_steps,
-        decay_rate=decay_rate,
-        staircase=True
-    )
+        y_pred_logits = self.model.predict({'input_ids': input_ids_test, 'attention_mask': attention_masks_test}).logits
+        y_pred_scores = tf.nn.softmax(y_pred_logits, axis=1).numpy()
+        y_pred_labels = tf.argmax(y_pred_scores, axis=1).numpy()
 
+        scores_df = pd.DataFrame(y_pred_scores, columns=label_names)
+        final_df = pd.concat([texts_test_series, scores_df], axis=1)
+        final_df['Overall_Score'] = final_df[label_names].max(axis=1)
 
-    optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
+        report = classification_report(labels_test, y_pred_labels, target_names=label_names, output_dict=True)
+        report_df = pd.DataFrame(report).transpose()
 
-    loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
-    return model
+        return final_df, report_df
 
+    # model_path is the directory to tf model
+    def load_model(self, model_path):
+        return TFElectraForSequenceClassification.from_pretrained(model_path)
 
-def train_model(model, train_data, validation_data):
-    callbacks = [
-        EarlyStopping(monitor='val_loss', patience=3),
-        ModelCheckpoint(filepath='best_model.h5', monitor='val_loss', save_best_only=True, save_format='h5')
-    ]
+    def infer(self, model, text):
 
-    history = model.fit(
-        train_data,
-        epochs=10,
-        batch_size=128,
-        validation_data=validation_data,
-        callbacks=callbacks,
-        verbose=1
-    )
-    return history
+        input_ids, attention_masks = [], []
+        for text in text:
+            encoded_dict = self.tokenizer.encode_plus(
+                text,
+                add_special_tokens=True,
+                max_length=128,
+                pad_to_max_length=True,
+                return_attention_mask=True,
+                return_tensors='tf',
+                truncation=True
+            )
+            input_ids.append(encoded_dict['input_ids'])
+            attention_masks.append(encoded_dict['attention_mask'])
 
-# Function for evaluating the model
-def evaluate_model(model, validation_data, texts_validation, label_names):
+        input_ids = tf.concat(input_ids, 0)
+        attention_masks = tf.concat(attention_masks, 0)
 
-    input_ids_test, attention_masks_test, labels_test = validation_data.values()
+        predictions = model.predict({'input_ids': input_ids, 'attention_mask': attention_masks})
+        predicted_labels = tf.argmax(predictions.logits, axis=1).numpy()
 
-    texts_test_series = pd.Series(texts_validation, name='Text')
+        predicted_labels = [self.label_names[label] for label in predicted_labels]
 
-    y_pred_logits = model.predict({'input_ids': input_ids_test, 'attention_mask': attention_masks_test}).logits
-    y_pred_scores = tf.nn.softmax(y_pred_logits, axis=1).numpy()
-    y_pred_labels = tf.argmax(y_pred_scores, axis=1).numpy()
+        return predicted_labels
 
-    scores_df = pd.DataFrame(y_pred_scores, columns=label_names)
-    final_df = pd.concat([texts_test_series, scores_df], axis=1)
+def main():
 
-    final_df['Overall_Score'] = final_df[label_names].max(axis=1)
+    label_names = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
+    classifier = ElectraClassifier(label_names)
+    input_ids, attention_masks, labels, texts = classifier.load_data_from_jsonl('hug_data.jsonl', )
+    classifier.create_model(num_labels=6)
 
-    report = classification_report(labels_test, y_pred_labels, target_names=label_names, output_dict=True)
-    report_df = pd.DataFrame(report).transpose()
+    # Convert tensors to NumPy arrays
+    if isinstance(input_ids, tf.Tensor):
+        input_ids = input_ids.numpy()
+    if isinstance(attention_masks, tf.Tensor):
+        attention_masks = attention_masks.numpy()
+    if isinstance(labels, tf.Tensor):
+        labels = labels.numpy()
 
-    return final_df, report_df
+    train_inputs, validation_inputs, train_labels, validation_labels = train_test_split(input_ids, labels, test_size=0.2, random_state=2018)
+    train_masks, validation_masks, texts_train, texts_validation = train_test_split(attention_masks, texts, test_size=0.2, random_state=2018)
 
+    train_inputs = tf.convert_to_tensor(train_inputs)
+    validation_inputs = tf.convert_to_tensor(validation_inputs)
+    train_masks = tf.convert_to_tensor(train_masks)
+    validation_masks = tf.convert_to_tensor(validation_masks)
+    train_labels = tf.convert_to_tensor(train_labels)
+    validation_labels = tf.convert_to_tensor(validation_labels)
 
-def load_model():
-    return tf.keras.models.load_model('electra_model.h5')
+    train_data = {'input_ids': train_inputs, 'attention_mask': train_masks, 'labels': train_labels}
+    validation_data = {'input_ids': validation_inputs, 'attention_mask': validation_masks, 'labels': validation_labels}
 
+    train_history = classifier.train_model(train_data, validation_data)
+    final_df, report_df = classifier.evaluate_model(validation_data, texts_validation, label_names)
 
-tokenizer = ElectraTokenizer.from_pretrained('google/electra-small-discriminator')
+    print("Evaluation Scores:")
+    print(final_df.head())
 
-input_ids, attention_masks, labels, texts, labels_series = load_data_from_jsonl('hug_data.jsonl')
-
-# Check class distribution
-class_distribution = labels_series.value_counts(normalize=True) * 100
-print("Class Distribution:\n", class_distribution)
-
-
-if isinstance(input_ids, tf.Tensor):
-    input_ids = input_ids.numpy()
-if isinstance(attention_masks, tf.Tensor):
-    attention_masks = attention_masks.numpy()
-if isinstance(labels, tf.Tensor):
-    labels = labels.numpy()
-
-
-train_inputs, validation_inputs, train_labels, validation_labels = train_test_split(input_ids, labels, test_size=0.2, random_state=2018)
-train_masks, validation_masks, texts_train, texts_validation = train_test_split(attention_masks, texts, test_size=0.2, random_state=2018)
-
-print("Dataset Sizes :")
-print(len(train_labels),len(validation_labels))
-
-
-train_inputs = tf.convert_to_tensor(train_inputs)
-validation_inputs = tf.convert_to_tensor(validation_inputs)
-train_masks = tf.convert_to_tensor(train_masks)
-validation_masks = tf.convert_to_tensor(validation_masks)
-train_labels = tf.convert_to_tensor(train_labels)
-validation_labels = tf.convert_to_tensor(validation_labels)
-
-train_data = {'input_ids': train_inputs, 'attention_mask': train_masks, 'labels': train_labels}
-validation_data = {'input_ids': validation_inputs, 'attention_mask': validation_masks, 'labels': validation_labels}
-
-label_names = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
-
-electra_model = create_model(num_labels=len(label_names))
-train_history = train_model(electra_model, train_data, validation_data)
-final_df, report_df = evaluate_model(electra_model, validation_data, texts_validation, label_names)
+    print("\nClassification Report:")
+    print(report_df)
 
 
-print("Evaluation Scores:")
-print(final_df.head())
+def from_pretrained(model_path):
+    print("here")
+    label_names = ['Sadness', 'Joy', 'Love', 'Anger', 'Fear', 'Surprise']
+    classifier = ElectraClassifier(label_names)
 
-print("\nClassification Report:")
-print(report_df)
+    # Load the model and the tokenizer
+    classifier.model = TFElectraForSequenceClassification.from_pretrained(model_path)
+    classifier.tokenizer = ElectraTokenizer.from_pretrained(model_path)
+
+    sentiment = classifier.infer(classifier.model, ['Please figure out the sentiment for this text. Scared if it actually works'])
+    print(sentiment)
+
+if __name__ == "__main__":
+    from_pretrained('best_model_electra')
+
