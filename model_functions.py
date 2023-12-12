@@ -142,9 +142,18 @@ class EmotionClassifier:
 
         return emotion_probs
 
-# Rename this to format data!
-# Plus, import or define tokenize_data and conv_to_tensor
 def get_data(sample_size):
+    """
+        Retreieves and rearranges twitter training data.
+
+        Args:
+            sample_size: How much of each emotion label to gather from the twitter training set.
+
+        Returns:
+            df: Gathered and re-ordered hug_data twitter datast as a pandas data frame.
+            texts: 'text' sub-set/column of df.
+            labels: 'labels' sub-set/column of df.
+    """
     # load data
     df = pd.read_json('hug_data.jsonl', lines=True)
     df.rename(columns={'label':'labels'}, inplace=True) # rename label to label_encoded
@@ -158,9 +167,16 @@ def get_data(sample_size):
 
     return df, texts, labels
 
-
-# Preprocess text function
 def preprocess_text( text):
+    """
+    Process raw strings. Removes urls, non-alphanums, capitol cases, and stop words.
+
+    Args:
+        text: the string to processes.
+
+    Returns:
+        text: processed string.
+    """
     
     text = re.sub(r'http\S+', '', text)
     text = re.sub(r'[^a-zA-Z0-9.,;:!?\'\"-]', ' ', text)
@@ -175,9 +191,22 @@ def preprocess_text( text):
     return text
 
 def tokenize_data(texts_train, texts_test):
-    # load pretrained tokenizer
+    """
+    Convert a text and training set into tokenized versoins with attention masks.
+
+    Args:
+        texts_train: training strings to convert.
+        texts_test: testing strings to convert.
+
+    Returns:
+        input_ids_train: encoded values of the training strings.
+        input_ids_test: encoded values of the testing strings.
+        attention_masks_train: attention values of training strings.
+        attention_masks_test: attention values of testing strings.
+        tokenizer: resultant bert tokenizer.
+    """
+    #load pretrained tokenizer
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-    #tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
 
     # Tokenize
     input_ids_train = []
@@ -214,6 +243,21 @@ def tokenize_data(texts_train, texts_test):
     return input_ids_train, input_ids_test, attention_masks_train, attention_masks_test, tokenizer
 
 def conv_to_tensor(input_ids_train, input_ids_test, attention_masks_train, attention_masks_test,):
+    """
+    Convert input id strings/attention masks into tensor objects
+
+    Args:
+        input_ids_train: encoded values of the training strings.
+        input_ids_test: encoded values of the testing strings.
+        attention_masks_train: attention values of training strings.
+        attention_masks_test: attention values of testing strings.
+
+    Returns:
+        input_ids_train: encoded values of the training strings as tensors.
+        input_ids_test: encoded values of the testing strings as tensors.
+        attention_masks_train: attention values of training strings as tensors.
+        attention_masks_test: attention values of testing strings as tensors.
+    """
     # Convert to tensors
     input_ids_train = tf.stack(input_ids_train, axis=0)
     input_ids_test = tf.stack(input_ids_test, axis=0)
@@ -224,6 +268,17 @@ def conv_to_tensor(input_ids_train, input_ids_test, attention_masks_train, atten
     return input_ids_train, input_ids_test, attention_masks_train, attention_masks_test
 
 def train_model(model_name, **kwargs):
+    """
+    Train new bert model.
+
+    Args:
+        model_name: Name of the new model.
+        kwargs: The model parameters.
+
+    Returns:
+        model: The newly trained model.
+        history: The model training history.
+    """
     if model_name == "TFBERT":
 
         #Unpack parameter kwargs
