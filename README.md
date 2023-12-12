@@ -14,7 +14,7 @@ To install, run the following:
 pip3 install -r general_requirements.txt
 ```
 
-The trained models should be downloaded before running any files using the following link to an accessable Google Drive. There are four models: BERT, BERT using Reddit data, RoBERTa, and ELECTRA.
+The trained models should be downloaded before running any files using the following link to an accessable Google Drive. There are four models: BERT, BERT using Reddit data, RoBERTa, and ELECTRA. Models should be put in Code/content/models
 
 ```bash
 https://drive.google.com/drive/folders/1mwFB0R89RYZ_qlLp675Z19VXZbMWdCuK?usp=sharing
@@ -30,7 +30,5 @@ The training and test algorithms run from the DATS_6312_NLP directory. The main.
 ```bash
 python3 main.py
 ```
-
-###
 
 ---
