@@ -1,5 +1,5 @@
 .DS_Store
-/content/models
+code/content/models
 # C extensions
 *.so
 *.pyc
