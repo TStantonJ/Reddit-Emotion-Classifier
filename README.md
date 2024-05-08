@@ -1,6 +1,7 @@
-# DATS_6312_NLP
+# Reddit Emotion Classifier
 
-### Team 3: Jonathan Schild, Thomas Stanton, Ashish Telukunta
+
+### Forked for from DATS_6312_NLP_Team 3: Jonathan Schild, Thomas Stanton, Ashish Telukunta
 
 ## Installations
 
